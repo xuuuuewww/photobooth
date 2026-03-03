@@ -10,6 +10,11 @@ export const metadata: Metadata = {
   title: "Photobooth Online Free – Create Photo Booth Strips Instantly without Sign Up",
   description:
     "Create beautiful photo booth strips online for free. No sign up, no downloads. Choose a template, take selfies, and generate stunning photo strips instantly in your browser.",
+  icons: {
+    icon: "/favicon-v2.png",
+    shortcut: "/favicon-v2.png",
+    apple: "/favicon-v2.png",
+  },
 };
 
 export default function RootLayout({
