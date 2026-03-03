@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { HomeTemplateGrid } from "@/components/HomeTemplateGrid";
 
 export default function Home() {
@@ -35,12 +36,12 @@ export default function Home() {
                 browser. No downloads, no sign up, just instant memories made
                 online for free.
               </p>
-              <a
+              <Link
                 href="/"
                 className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-500 px-5 py-2 text-xs font-semibold tracking-[0.18em] text-white shadow-[0_16px_40px_rgba(244,114,182,0.5)] transition hover:bg-rose-400 md:px-6 md:py-2.5 md:text-sm"
               >
                 Make My Photo Strip Now &gt;
-              </a>
+              </Link>
             </div>
 
               <div className="flex items-center justify-center">
