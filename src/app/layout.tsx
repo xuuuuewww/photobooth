@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -8,6 +9,9 @@ import { ThemeProvider } from "@/components/theme-provider";
 export const metadata: Metadata = {
   title: "Photobooth Online",
   description: "Browser-based photo booth inspired by photobooth-io.cc",
+  icons: {
+    icon: "/logo.png",
+  },
 };
 
 export default function RootLayout({
@@ -55,6 +59,7 @@ export default function RootLayout({
           </div>
           <Toaster richColors position="top-center" />
         </ThemeProvider>
+        <GoogleAnalytics gaId="G-0BXDGTHN02" />
       </body>
     </html>
   );
