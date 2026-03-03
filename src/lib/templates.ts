@@ -3,7 +3,9 @@ export interface PhotoTemplate {
   name: string;
   category: string;
   bgColor: string; // 模板背景色
+  bgPattern?: string; // 背景花纹: solid | dots | checker | diagonal-stripe | grid
   frameColor: string; // 照片框颜色
+  framePattern?: string; // 边框花纹: solid | dashed | dotted | double | stripe | gradient | lace | gold-foil | checker
   photoCount: 4; // 固定4张
   filterClass: string; // Tailwind-like filter hint: 'sepia' | 'grayscale' | ''
   fontColor: string; // 底部文字颜色
@@ -20,7 +22,7 @@ export const templates: PhotoTemplate[] = [
     photoCount: 4,
     filterClass: "sepia",
     fontColor: "#7a5c3a",
-    footerText: "PHOTOBOOTH",
+    footerText: "photobooth-online.com",
   },
   {
     id: "wedding-classic",
@@ -31,7 +33,7 @@ export const templates: PhotoTemplate[] = [
     photoCount: 4,
     filterClass: "",
     fontColor: "#d4a0aa",
-    footerText: "PHOTOBOOTH",
+    footerText: "photobooth-online.com",
   },
   {
     id: "romantic-bw",
@@ -42,7 +44,7 @@ export const templates: PhotoTemplate[] = [
     photoCount: 4,
     filterClass: "grayscale",
     fontColor: "#ffffff",
-    footerText: "PHOTOBOOTH",
+    footerText: "photobooth-online.com",
   },
   {
     id: "romantic-color",
@@ -53,7 +55,7 @@ export const templates: PhotoTemplate[] = [
     photoCount: 4,
     filterClass: "",
     fontColor: "#ff6b9d",
-    footerText: "PHOTOBOOTH",
+    footerText: "photobooth-online.com",
   },
 ];
 

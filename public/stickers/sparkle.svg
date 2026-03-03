@@ -1,0 +1,12 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sparkleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff2a8" />
+      <stop offset="100%" stop-color="#ffd166" />
+    </linearGradient>
+  </defs>
+  <path d="M64 6l11 33 33 11-33 11-11 33-11-33-33-11 33-11L64 6z" fill="url(#sparkleGrad)" />
+  <circle cx="95" cy="30" r="9" fill="#ffe39f" />
+  <circle cx="30" cy="95" r="7" fill="#ffe9b7" />
+  <path d="M95 16l4 10 10 4-10 4-4 10-4-10-10-4 10-4 4-10z" fill="#fff6d6" />
+</svg>

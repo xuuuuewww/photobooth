@@ -99,17 +99,32 @@ function CaptureContent() {
     const w = video.videoWidth;
     const h = video.videoHeight;
     if (!w || !h) return null;
+    const targetRatio = 4 / 3;
+    const sourceRatio = w / h;
 
-    canvas.width = w;
-    canvas.height = h;
+    let sx = 0;
+    let sy = 0;
+    let sw = w;
+    let sh = h;
+
+    if (sourceRatio > targetRatio) {
+      sw = Math.round(h * targetRatio);
+      sx = Math.round((w - sw) / 2);
+    } else if (sourceRatio < targetRatio) {
+      sh = Math.round(w / targetRatio);
+      sy = Math.round((h - sh) / 2);
+    }
+
+    canvas.width = sw;
+    canvas.height = sh;
     const ctx = canvas.getContext("2d");
     if (!ctx) return null;
 
     // mirror capture to match preview
     ctx.save();
-    ctx.translate(w, 0);
+    ctx.translate(sw, 0);
     ctx.scale(-1, 1);
-    ctx.drawImage(video, 0, 0, w, h);
+    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, sw, sh);
     ctx.restore();
 
     return canvas.toDataURL("image/png");
@@ -164,7 +179,7 @@ function CaptureContent() {
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-neutral-50 px-3 py-4 md:px-8 md:py-6">
-      <div className="mx-auto grid w-full max-w-6xl gap-4 md:grid-cols-[minmax(0,1fr)_22rem]">
+      <div className="mx-auto grid w-full max-w-6xl gap-4 md:grid-cols-[minmax(0,1fr)_24rem] lg:grid-cols-[minmax(0,1fr)_26rem]">
         <section className="relative overflow-hidden rounded-[2rem] border border-neutral-200 bg-white/80 shadow-[0_18px_70px_rgba(15,23,42,0.12)]">
           <div className="flex items-center justify-between border-b border-neutral-200/70 px-4 py-3">
             <div className="text-sm font-semibold tracking-tight text-rose-600">
@@ -178,7 +193,7 @@ function CaptureContent() {
             </div>
           </div>
 
-          <div className="relative aspect-video w-full bg-neutral-900">
+          <div className="relative aspect-[4/3] w-full bg-neutral-900">
             <video
               ref={videoRef}
               className="h-full w-full object-cover"
@@ -230,14 +245,14 @@ function CaptureContent() {
             </div>
           </div>
 
-          <div className="flex flex-1 flex-col gap-3 p-4">
+          <div className="flex flex-1 flex-col gap-3.5 p-5">
             {Array.from({ length: 4 }).map((_, idx) => {
               const src = photos[idx];
               return (
                 <div
                   key={idx}
                   className={cn(
-                    "h-20 overflow-hidden rounded-xl border bg-neutral-100",
+                    "mx-auto aspect-[4/3] h-24 md:h-28 overflow-hidden rounded-2xl border bg-neutral-100",
                     src ? "border-rose-200" : "border-neutral-200",
                   )}
                 >
