@@ -7,11 +7,9 @@ import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 
 export const metadata: Metadata = {
-  title: "Photobooth Online",
-  description: "Browser-based photo booth inspired by photobooth-io.cc",
-  icons: {
-    icon: "/logo.png",
-  },
+  title: "Photobooth Online Free – Create Photo Booth Strips Instantly without Sign Up",
+  description:
+    "Create beautiful photo booth strips online for free. No sign up, no downloads. Choose a template, take selfies, and generate stunning photo strips instantly in your browser.",
 };
 
 export default function RootLayout({
