@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Camera, RotateCcw, ShieldAlert } from "lucide-react";
 import { templates } from "@/lib/templates";
@@ -24,7 +24,7 @@ function safeParsePhotos(raw: string | null): string[] {
   }
 }
 
-export default function CapturePage() {
+function CaptureContent() {
   const router = useRouter();
   const params = useSearchParams();
   const templateId = params.get("templateId") ?? "";
@@ -300,6 +300,14 @@ export default function CapturePage() {
 
       <canvas ref={canvasRef} className="hidden" aria-hidden="true" />
     </div>
+  );
+}
+
+export default function CapturePage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-[50vh] items-center justify-center text-rose-500">Loading...</div>}>
+      <CaptureContent />
+    </Suspense>
   );
 }
 

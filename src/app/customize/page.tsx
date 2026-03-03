@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import * as htmlToImage from "html-to-image";
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,7 @@ const BG_COLORS = [
   "#f0f4ff",
 ] as const;
 
-export default function CustomizePage() {
+function CustomizeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const templateId = searchParams.get("templateId") ?? templates[0]?.id ?? "";
@@ -313,5 +313,13 @@ export default function CustomizePage() {
         />
       </div>
     </div>
+  );
+}
+
+export default function CustomizePage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-[50vh] items-center justify-center text-rose-500">Loading...</div>}>
+      <CustomizeContent />
+    </Suspense>
   );
 }
