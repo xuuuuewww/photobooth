@@ -9,11 +9,10 @@ export default function Home() {
         <section className="flex w-full flex-1 flex-col items-center gap-5 md:gap-7">
           <header className="mt-4 space-y-2 text-center md:mt-6">
             <h1 className="text-[26px] font-semibold tracking-tight text-rose-500 md:text-[34px]">
-              Choose A Photobooth Template
+              Choose A Photo Strip Template
             </h1>
-            <p className="mx-auto max-w-xl text-xs text-neutral-500 md:text-sm">
-              Pick a strip style to match your moment. You can always refine
-              colors, frames, and details later in the editor.
+            <p className="mx-auto whitespace-nowrap text-xs text-neutral-500 md:text-sm">
+              Pick a strip style to match your moment. You can always refine colors, frames, and details later in the editor.
             </p>
           </header>
 

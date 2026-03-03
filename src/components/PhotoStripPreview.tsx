@@ -63,45 +63,6 @@ export const PhotoStripPreview = React.forwardRef<
     rootStyle.backgroundSize = "18px 18px";
   }
 
-  const framePattern = template.framePattern ?? "solid";
-  const frameStyle: CSSProperties = {
-    borderColor: template.frameColor,
-    borderStyle: "solid",
-    borderWidth: 4,
-  };
-
-  if (framePattern === "dashed") {
-    frameStyle.borderStyle = "dashed";
-  } else if (framePattern === "dotted") {
-    frameStyle.borderStyle = "dotted";
-  } else if (framePattern === "double") {
-    frameStyle.borderStyle = "double";
-    frameStyle.borderWidth = 6;
-  } else if (framePattern === "stripe") {
-    frameStyle.borderStyle = "solid";
-    frameStyle.borderWidth = 6;
-    frameStyle.borderImage = `repeating-linear-gradient(45deg, ${template.frameColor}, ${template.frameColor} 8px, #ffffff 8px, #ffffff 16px) 1`;
-  } else if (framePattern === "gradient") {
-    frameStyle.borderStyle = "solid";
-    frameStyle.borderWidth = 6;
-    frameStyle.borderImage = "linear-gradient(135deg, #ff6b9d, #f9c6d0, #ffd6e7, #ff6b9d) 1";
-  } else if (framePattern === "lace") {
-    frameStyle.borderStyle = "solid";
-    frameStyle.borderWidth = 6;
-    frameStyle.borderImage =
-      "radial-gradient(circle at 4px 4px, #f8b7ca 0 2px, #ffe6ef 2px 6px) 1 round";
-  } else if (framePattern === "gold-foil") {
-    frameStyle.borderStyle = "solid";
-    frameStyle.borderWidth = 6;
-    frameStyle.borderImage =
-      "linear-gradient(135deg, #d4af37 0%, #f7e7a8 22%, #b8860b 45%, #f2cc59 67%, #8c6a11 100%) 1";
-  } else if (framePattern === "checker") {
-    frameStyle.borderStyle = "solid";
-    frameStyle.borderWidth = 6;
-    frameStyle.borderImage =
-      "repeating-conic-gradient(from 45deg, #ffd1e3 0deg 90deg, #fff 90deg 180deg) 1 round";
-  }
-
   let filterStyle: CSSProperties = {};
   if (template.filterClass === "sepia") {
     filterStyle = { filter: "sepia(1)" };
@@ -153,7 +114,6 @@ export const PhotoStripPreview = React.forwardRef<
                 height: 240,
                 marginLeft: "auto",
                 marginRight: "auto",
-                ...frameStyle,
               }}
             >
               {src ? (
@@ -181,12 +141,13 @@ export const PhotoStripPreview = React.forwardRef<
             justifyContent: "center",
             flexDirection: "column",
             textAlign: "center",
+            textShadow: "0 1px 2px rgba(0, 0, 0, 0.35)",
             ...(footerStyle ?? {}),
           }}
-          className="pt-3 text-xs tracking-[0.28em] uppercase"
+          className="pt-3 text-[16px] font-bold tracking-[0.2em] uppercase"
         >
           <div className="font-semibold">{template.footerText}</div>
-          <div className="mt-1 tracking-normal">{today}</div>
+          <div className="mt-1 text-[13px] font-semibold tracking-[0.08em]">{today}</div>
         </div>
       </div>
 

@@ -251,10 +251,7 @@ function CaptureContent() {
               return (
                 <div
                   key={idx}
-                  className={cn(
-                    "mx-auto aspect-[4/3] h-24 md:h-28 overflow-hidden rounded-2xl border bg-neutral-100",
-                    src ? "border-rose-200" : "border-neutral-200",
-                  )}
+                  className="mx-auto aspect-[4/3] h-24 overflow-hidden rounded-2xl bg-neutral-100 md:h-28"
                 >
                   {src ? (
                     // eslint-disable-next-line @next/next/no-img-element

@@ -18,16 +18,6 @@ const PREVIEW_SCALE = 0.6;
 const DEFAULT_STICKER_SIZE = 74;
 
 type FilterOption = "none" | "sepia" | "grayscale" | "warm";
-type FramePatternOption =
-  | "solid"
-  | "dashed"
-  | "dotted"
-  | "double"
-  | "stripe"
-  | "gradient"
-  | "lace"
-  | "gold-foil"
-  | "checker";
 type BackgroundPatternOption =
   | "solid"
   | "dots"
@@ -35,7 +25,7 @@ type BackgroundPatternOption =
   | "diagonal-stripe"
   | "grid";
 
-const BORDER_COLORS = [
+const BG_COLORS = [
   "#ffffff",
   "#000000",
   "#f9c6d0",
@@ -49,20 +39,6 @@ const BORDER_COLORS = [
   "#ff7f50",
   "#3b3b3b",
 ] as const;
-
-const BG_COLORS = BORDER_COLORS;
-
-const BORDER_PATTERNS: { id: FramePatternOption; label: string }[] = [
-  { id: "solid", label: "Solid" },
-  { id: "dashed", label: "Dashed" },
-  { id: "dotted", label: "Dotted" },
-  { id: "double", label: "Double" },
-  { id: "stripe", label: "Stripe" },
-  { id: "gradient", label: "Gradient" },
-  { id: "lace", label: "Lace" },
-  { id: "gold-foil", label: "Gold Foil" },
-  { id: "checker", label: "Checker" },
-];
 
 const BG_PATTERNS: { id: BackgroundPatternOption; label: string }[] = [
   { id: "solid", label: "Solid" },
@@ -100,10 +76,6 @@ function CustomizeContent() {
   );
 
   const [photos, setPhotos] = useState<string[]>([]);
-  const [borderColor, setBorderColor] = useState<string>(baseTemplate.frameColor);
-  const [borderPattern, setBorderPattern] = useState<FramePatternOption>(
-    "solid",
-  );
   const [bgColor, setBgColor] = useState<string>(baseTemplate.bgColor);
   const [bgPattern, setBgPattern] = useState<BackgroundPatternOption>("solid");
   const [filter, setFilter] = useState<FilterOption>(() =>
@@ -124,10 +96,6 @@ function CustomizeContent() {
   const exportRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    setBorderColor(baseTemplate.frameColor);
-    setBorderPattern(
-      (baseTemplate.framePattern as FramePatternOption | undefined) ?? "solid",
-    );
     setBgColor(baseTemplate.bgColor);
     setBgPattern(
       (baseTemplate.bgPattern as BackgroundPatternOption | undefined) ?? "solid",
@@ -144,8 +112,6 @@ function CustomizeContent() {
     setFooterText(baseTemplate.footerText);
   }, [
     baseTemplate.id,
-    baseTemplate.frameColor,
-    baseTemplate.framePattern,
     baseTemplate.bgColor,
     baseTemplate.bgPattern,
     baseTemplate.filterClass,
@@ -176,8 +142,6 @@ function CustomizeContent() {
     ...baseTemplate,
     bgColor,
     bgPattern,
-    frameColor: borderColor,
-    framePattern: borderPattern,
     filterClass:
       filter === "sepia"
         ? "sepia"
@@ -301,56 +265,8 @@ function CustomizeContent() {
 
           {/* Right: controls */}
           <aside className="flex flex-col rounded-[2rem] border border-neutral-200 bg-white/90 p-4 shadow-[0_18px_70px_rgba(15,23,42,0.12)] md:p-6">
-            {/* Border Color */}
-            <div className="space-y-2 border-b border-neutral-100 pb-4">
-              <h2 className="text-[13px] font-bold uppercase tracking-[0.2em] text-neutral-700">
-                Border Color
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                {BORDER_COLORS.map((color) => (
-                  <button
-                    key={color}
-                    type="button"
-                    onClick={() => setBorderColor(color)}
-                    className={cn(
-                      "h-7 w-7 rounded-full border border-neutral-200",
-                      "transition-shadow",
-                      borderColor === color &&
-                        "ring-2 ring-rose-400 ring-offset-2 ring-offset-white",
-                    )}
-                    style={{ backgroundColor: color }}
-                    aria-label={`Border color ${color}`}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Border Pattern */}
-            <div className="space-y-2 border-b border-neutral-100 py-4">
-              <h2 className="text-[13px] font-bold uppercase tracking-[0.2em] text-neutral-700">
-                Border Pattern
-              </h2>
-              <div className="grid grid-cols-4 gap-2 lg:grid-cols-5">
-                {BORDER_PATTERNS.map((pattern) => (
-                  <button
-                    key={pattern.id}
-                    type="button"
-                    onClick={() => setBorderPattern(pattern.id)}
-                    className={cn(
-                      "rounded-full border px-2 py-1 text-[10px] leading-none transition md:text-[11px]",
-                      borderPattern === pattern.id
-                        ? "border-rose-400 bg-rose-500 text-white"
-                        : "border-neutral-200 bg-white text-neutral-700 hover:border-rose-200",
-                    )}
-                  >
-                    {pattern.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
             {/* Background Color */}
-            <div className="space-y-2 border-b border-neutral-100 py-4">
+            <div className="space-y-2 border-b border-neutral-100 pb-4">
               <h2 className="text-[13px] font-bold uppercase tracking-[0.2em] text-neutral-700">
                 Background Color
               </h2>
