@@ -67,6 +67,41 @@ const STICKER_PRESETS = [
   { id: "camera", src: "/stickers/camera.svg", label: "Camera" },
 ] as const;
 
+async function waitForImagesReady(
+  root: HTMLElement,
+  timeoutMs = 5000,
+): Promise<void> {
+  const images = Array.from(root.querySelectorAll("img"));
+  if (images.length === 0) return;
+
+  await Promise.all(
+    images.map(
+      (img) =>
+        new Promise<void>((resolve) => {
+          if (img.complete && img.naturalWidth > 0) {
+            resolve();
+            return;
+          }
+
+          const handleDone = () => {
+            cleanup();
+            resolve();
+          };
+
+          const cleanup = () => {
+            img.removeEventListener("load", handleDone);
+            img.removeEventListener("error", handleDone);
+            window.clearTimeout(timer);
+          };
+
+          const timer = window.setTimeout(handleDone, timeoutMs);
+          img.addEventListener("load", handleDone);
+          img.addEventListener("error", handleDone);
+        }),
+    ),
+  );
+}
+
 function CustomizeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -163,6 +198,8 @@ function CustomizeContent() {
     if (!exportRef.current) return;
     setIsExporting(true);
     try {
+      await waitForImagesReady(exportRef.current);
+
       const blob = await htmlToImage.toBlob(exportRef.current, {
         cacheBust: true,
         width: 400,
