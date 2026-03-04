@@ -163,18 +163,54 @@ function CustomizeContent() {
     if (!exportRef.current) return;
     setIsExporting(true);
     try {
-      const dataUrl = await htmlToImage.toPng(exportRef.current, {
+      const blob = await htmlToImage.toBlob(exportRef.current, {
         cacheBust: true,
         width: 400,
         height: 1300,
       });
+      if (!blob) {
+        throw new Error("Failed to generate image blob.");
+      }
+
+      const fileName = `photobooth-${effectiveTemplate.id}-${Date.now()}.png`;
+      const file = new File([blob], fileName, { type: "image/png" });
+
+      // Preferred mobile path: invoke native share sheet so users can save to Photos.
+      if (
+        typeof navigator !== "undefined" &&
+        typeof navigator.share === "function" &&
+        typeof navigator.canShare === "function" &&
+        navigator.canShare({ files: [file] })
+      ) {
+        await navigator.share({
+          title: "Photo Strip",
+          files: [file],
+        });
+        return;
+      }
+
+      const objectUrl = URL.createObjectURL(blob);
+      const isMobile = /iPhone|iPad|iPod|Android|Mobile/i.test(
+        navigator.userAgent,
+      );
+
+      if (isMobile) {
+        window.open(objectUrl, "_blank", "noopener,noreferrer");
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 30_000);
+        return;
+      }
+
       const link = document.createElement("a");
-      link.href = dataUrl;
-      link.download = `photobooth-${effectiveTemplate.id}-${Date.now()}.png`;
+      link.href = objectUrl;
+      link.download = fileName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      URL.revokeObjectURL(objectUrl);
     } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") {
+        return;
+      }
       console.error("Failed to export image", err);
       alert("Failed to generate image. Please try again.");
     } finally {
