@@ -188,7 +188,7 @@ function CaptureContent() {
   }, [photos.length]);
 
   return (
-    <div className="h-[calc(100dvh-4rem)] overflow-hidden bg-neutral-50 px-3 py-3 md:min-h-[calc(100vh-4rem)] md:h-auto md:overflow-visible md:px-8 md:py-6">
+    <div className="h-[calc(100dvh-46px)] overflow-hidden bg-neutral-50 px-3 py-3 md:min-h-[calc(100vh-4rem)] md:h-auto md:overflow-visible md:px-8 md:py-6">
       <div className="mx-auto hidden w-full max-w-6xl gap-4 md:grid md:grid-cols-[minmax(0,1fr)_24rem] lg:grid-cols-[minmax(0,1fr)_26rem]">
         <section className="relative overflow-hidden rounded-[2rem] border border-neutral-200 bg-white/80 shadow-[0_18px_70px_rgba(15,23,42,0.12)]">
           <div className="flex items-center justify-between border-b border-neutral-200/70 px-4 py-3">
@@ -206,7 +206,7 @@ function CaptureContent() {
           <div className="relative aspect-[4/3] w-full bg-neutral-900">
             <video
               ref={videoRef}
-              className="h-full w-full object-cover"
+              className="h-full w-full object-contain"
               style={{ transform: "scaleX(-1)" }}
               playsInline
               muted
@@ -422,11 +422,11 @@ function CaptureContent() {
             </div>
 
             {photos.length === 4 && !isShooting ? (
-              <div className="flex flex-col gap-2">
+              <div className="grid grid-cols-4 gap-2">
                 <button
                   type="button"
                   onClick={handleContinue}
-                  className="inline-flex w-full items-center justify-center rounded-full bg-pink-500 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_16px_50px_rgba(244,114,182,0.35)] transition hover:bg-pink-400"
+                  className="col-span-3 inline-flex h-11 w-full items-center justify-center rounded-full bg-pink-500 px-4 text-sm font-semibold text-white shadow-[0_16px_50px_rgba(244,114,182,0.35)] transition hover:bg-pink-400"
                 >
                   Continue
                 </button>
@@ -434,9 +434,9 @@ function CaptureContent() {
                 <button
                   type="button"
                   onClick={handleRetake}
-                  className="inline-flex w-full items-center justify-center rounded-full border border-pink-200 bg-white px-4 py-2.5 text-sm font-semibold text-pink-600 transition hover:bg-pink-50"
+                  className="col-span-1 inline-flex h-11 w-full items-center justify-center rounded-full border border-pink-200 bg-white px-3 text-sm font-semibold text-pink-600 transition hover:bg-pink-50"
                 >
-                  <RotateCcw className="mr-2 h-4 w-4" />
+                  <RotateCcw className="h-4 w-4" />
                   Retake
                 </button>
               </div>
@@ -446,7 +446,7 @@ function CaptureContent() {
                 onClick={runShootSequence}
                 disabled={Boolean(error) || !stream || isShooting}
                 className={cn(
-                  "inline-flex w-full items-center justify-center rounded-full px-4 py-2.5 text-sm font-semibold text-white transition",
+                  "inline-flex h-11 w-full items-center justify-center rounded-full px-4 text-sm font-semibold text-white transition",
                   "shadow-[0_16px_50px_rgba(244,114,182,0.35)]",
                   Boolean(error) || !stream || isShooting
                     ? "bg-pink-300"

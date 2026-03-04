@@ -29,7 +29,7 @@ export default function RootLayout({
         <ThemeProvider>
           <div className="flex min-h-screen flex-col">
             <header className="fixed top-0 left-0 right-0 z-50 border-b border-pink-100/80 bg-white/80 text-xs text-foreground backdrop-blur-md">
-              <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-2 md:px-10 md:py-3">
+              <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-1.5 md:px-10 md:py-3">
                 <Link
                   href="/"
                   className="flex items-center gap-2.5 rounded-md transition hover:opacity-90 md:gap-3"
@@ -40,9 +40,9 @@ export default function RootLayout({
                     alt=""
                     width={44}
                     height={44}
-                    className="h-10 w-10 object-cover md:h-11 md:w-11"
+                    className="h-9 w-9 object-cover md:h-11 md:w-11"
                   />
-                  <span className="text-[13px] font-semibold uppercase tracking-[0.22em] text-pink-700 md:text-[14px]">
+                  <span className="text-[12px] font-semibold uppercase tracking-[0.2em] text-pink-700 md:text-[14px]">
                     PHOTOBOOTH.online
                   </span>
                 </Link>
@@ -60,7 +60,7 @@ export default function RootLayout({
                 <MobileNavMenu />
               </div>
             </header>
-            <main className="flex-1 pt-[52px] md:pt-[60px]">{children}</main>
+            <main className="flex-1 pt-[46px] md:pt-[60px]">{children}</main>
           </div>
           <Toaster richColors position="top-center" />
         </ThemeProvider>

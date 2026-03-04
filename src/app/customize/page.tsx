@@ -272,16 +272,16 @@ function CustomizeContent() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-neutral-50 px-3 py-2 md:px-8 md:py-6">
+    <div className="min-h-[calc(100vh-46px)] bg-neutral-50 px-3 py-2 md:min-h-[calc(100vh-4rem)] md:px-8 md:py-6">
       <div className="mx-auto w-full max-w-6xl">
-        <div className="flex h-[calc(100dvh-4.5rem)] min-h-0 flex-col overflow-hidden md:hidden">
+        <div className="flex h-[calc(100dvh-46px)] min-h-0 flex-col overflow-hidden md:hidden">
           <div className="sticky top-0 z-20 bg-neutral-50 pb-1">
             <h1 className="px-1 pb-1 text-[11px] font-semibold uppercase tracking-[0.12em] whitespace-nowrap overflow-hidden text-ellipsis text-pink-500">
               Step 3 · Customize Your Photo Strip &amp; Download
             </h1>
             <section className="relative flex h-[clamp(21rem,41vh,24rem)] items-center rounded-[1.75rem] border border-neutral-200 bg-white/90 px-3 py-3 shadow-[0_18px_70px_rgba(15,23,42,0.12)]">
               <div className="flex w-full items-center justify-center gap-2">
-                <div className="relative flex w-[68%] max-w-[15rem] flex-none items-center justify-center rounded-[1.25rem] bg-neutral-50/60 py-2">
+                <div className="relative flex w-[68%] max-w-[15rem] flex-none items-center justify-center rounded-[1.25rem] py-2">
                   <div className="relative h-[338px] w-[104px]">
                     <PhotoStripPreview
                       ref={previewRef}

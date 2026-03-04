@@ -179,7 +179,7 @@ export default function CanvasPage() {
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-4.5rem)] flex-col px-4 py-4 md:px-8 md:py-6">
+    <div className="flex min-h-[calc(100vh-46px)] flex-col px-4 py-4 md:min-h-[calc(100vh-4.5rem)] md:px-8 md:py-6">
       <div className="mb-3 flex items-center justify-between gap-2">
         <TopBar
           onBackHref="/"
