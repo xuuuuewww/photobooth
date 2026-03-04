@@ -8,10 +8,10 @@ export default function Home() {
       <main className="relative flex w-full max-w-6xl flex-col items-center">
         <section className="flex w-full flex-1 flex-col items-center gap-5 md:gap-7">
           <header className="mt-4 space-y-2 text-center md:mt-6">
-            <h1 className="text-[26px] font-semibold tracking-tight text-rose-500 md:text-[34px]">
+            <h1 className="text-[26px] font-semibold tracking-tight text-pink-500 md:text-[34px]">
               Choose A Photo Strip Template
             </h1>
-            <p className="mx-auto whitespace-nowrap text-xs text-neutral-500 md:text-sm">
+            <p className="mx-auto text-xs text-neutral-500 md:whitespace-nowrap md:text-sm">
               Pick a strip style to match your moment. You can always refine colors, frames, and details later in the editor.
             </p>
           </header>
@@ -22,7 +22,7 @@ export default function Home() {
         </section>
 
         <section className="mt-20 w-full md:mt-24">
-          <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-rose-50 via-rose-50 to-rose-100/80 px-4 py-7 shadow-[0_22px_80px_rgba(248,113,166,0.18)] md:px-8 md:py-8">
+          <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-pink-50 via-pink-50 to-pink-100/80 px-4 py-7 shadow-[0_22px_80px_rgba(248,113,166,0.18)] md:px-8 md:py-8">
             <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-white/40 via-transparent to-transparent" />
 
             <div className="grid items-center gap-8 md:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
@@ -37,7 +37,7 @@ export default function Home() {
               </p>
               <Link
                 href="/"
-                className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-500 px-5 py-2 text-xs font-semibold tracking-[0.18em] text-white shadow-[0_16px_40px_rgba(244,114,182,0.5)] transition hover:bg-rose-400 md:px-6 md:py-2.5 md:text-sm"
+                className="inline-flex items-center gap-2 rounded-full border border-pink-200 bg-pink-500 px-5 py-2 text-xs font-semibold tracking-[0.18em] text-white shadow-[0_16px_40px_rgba(244,114,182,0.5)] transition hover:bg-pink-400 md:px-6 md:py-2.5 md:text-sm"
               >
                 Make My Photo Strip Now &gt;
               </Link>

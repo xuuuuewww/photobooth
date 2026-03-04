@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import * as htmlToImage from "html-to-image";
+import { ChevronDown, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   PhotoStripPreview,
@@ -15,6 +16,7 @@ const STORAGE_KEY = "capturedPhotos";
 const STRIP_WIDTH = 400;
 const STRIP_HEIGHT = 1300;
 const PREVIEW_SCALE = 0.6;
+const MOBILE_PREVIEW_SCALE = 0.26;
 const DEFAULT_STICKER_SIZE = 74;
 
 type FilterOption = "none" | "sepia" | "grayscale" | "warm";
@@ -91,6 +93,9 @@ function CustomizeContent() {
   );
   const [stickers, setStickers] = useState<StickerPlacement[]>([]);
   const [isExporting, setIsExporting] = useState(false);
+  const [mobileOpenSection, setMobileOpenSection] = useState<
+    "background" | "filter" | "stickers" | "footer"
+  >("background");
 
   const previewRef = useRef<HTMLDivElement | null>(null);
   const exportRef = useRef<HTMLDivElement | null>(null);
@@ -222,227 +227,529 @@ function CustomizeContent() {
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-neutral-50 px-3 py-4 md:px-8 md:py-6">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-sm font-semibold uppercase tracking-[0.18em] text-rose-500">
-              Step 3 · Customize &amp; Export
+      <div className="mx-auto w-full max-w-6xl">
+        <div className="h-[calc(100dvh-4.5rem)] overflow-hidden md:hidden">
+          <div className="sticky top-0 z-20 bg-neutral-50 pb-2">
+            <h1 className="px-1 pb-2 text-sm font-semibold uppercase tracking-[0.18em] text-pink-500">
+              Step 3 · Customize Your Photo Strip &amp; Download
             </h1>
-            <p className="mt-1 text-sm font-medium text-neutral-900 md:text-base">
-              Fine-tune your photobooth strip and download a final image.
-            </p>
+            <section className="relative flex h-[40vh] min-h-[300px] items-center justify-center rounded-[1.75rem] border border-neutral-200 bg-white/90 px-4 py-4 shadow-[0_18px_70px_rgba(15,23,42,0.12)]">
+              <div className="relative h-[338px] w-[104px]">
+                <PhotoStripPreview
+                  ref={previewRef}
+                  template={effectiveTemplate}
+                  photos={photos}
+                  stickers={stickers}
+                  scale={MOBILE_PREVIEW_SCALE}
+                  onClick={handlePreviewClick}
+                  className={cn(
+                    "absolute left-1/2 top-0 -translate-x-1/2",
+                    selectedStickerSrc ? "cursor-crosshair" : "cursor-default",
+                  )}
+                />
+              </div>
+              <div className="absolute bottom-3 right-3 rounded-full border border-pink-200 bg-white/95 p-2 text-pink-500 shadow-sm">
+                <Pencil className="h-3.5 w-3.5" />
+              </div>
+            </section>
           </div>
-          <div className="hidden text-xs text-neutral-500 md:block">
-            Template:{" "}
-            <span className="font-semibold text-neutral-800">
-              {baseTemplate.name}
-            </span>
-          </div>
-        </div>
 
-        <div className="grid gap-4 md:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-          {/* Left: live preview */}
-          <section className="flex items-center justify-center rounded-[2rem] border border-neutral-200 bg-white/80 px-4 py-6 shadow-[0_18px_70px_rgba(15,23,42,0.12)] md:px-6">
-            <div className="flex flex-col items-center gap-4">
-              <PhotoStripPreview
-                ref={previewRef}
-                template={effectiveTemplate}
-                photos={photos}
-                stickers={stickers}
-                scale={PREVIEW_SCALE}
-                onClick={handlePreviewClick}
-                className={cn(
-                  selectedStickerSrc ? "cursor-crosshair" : "cursor-default",
-                )}
-              />
-              <p className="text-xs text-neutral-500">
-                {selectedStickerSrc
-                  ? "Sticker selected: click the preview to place it."
-                  : "Preview at 60% scale. Downloaded image will be full resolution."}
-              </p>
-            </div>
-          </section>
-
-          {/* Right: controls */}
-          <aside className="flex flex-col rounded-[2rem] border border-neutral-200 bg-white/90 p-4 shadow-[0_18px_70px_rgba(15,23,42,0.12)] md:p-6">
-            {/* Background Color */}
-            <div className="space-y-2 border-b border-neutral-100 pb-4">
-              <h2 className="text-[13px] font-bold uppercase tracking-[0.2em] text-neutral-700">
-                Background Color
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                {BG_COLORS.map((color) => (
+          <div className="h-[calc(100%-40vh-3.75rem)] overflow-y-auto pb-[11.5rem]">
+            <aside className="rounded-[1.5rem] border border-neutral-200 bg-white/95 p-4 shadow-[0_18px_70px_rgba(15,23,42,0.1)]">
+              <div className="space-y-3">
+                <div className="rounded-xl border border-neutral-200/80 bg-neutral-50/70 px-3">
                   <button
-                    key={color}
                     type="button"
-                    onClick={() => setBgColor(color)}
-                    className={cn(
-                      "h-7 w-7 rounded-full border border-neutral-200",
-                      "transition-shadow",
-                      bgColor === color &&
-                        "ring-2 ring-rose-400 ring-offset-2 ring-offset-white",
-                    )}
-                    style={{ backgroundColor: color }}
-                    aria-label={`Background color ${color}`}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Background Pattern */}
-            <div className="space-y-2 border-b border-neutral-100 py-4">
-              <h2 className="text-[13px] font-bold uppercase tracking-[0.2em] text-neutral-700">
-                Background Pattern
-              </h2>
-              <div className="grid grid-cols-4 gap-2 lg:grid-cols-5">
-                {BG_PATTERNS.map((pattern) => (
-                  <button
-                    key={pattern.id}
-                    type="button"
-                    onClick={() => setBgPattern(pattern.id)}
-                    className={cn(
-                      "rounded-full border px-2 py-1 text-[10px] leading-none transition md:text-[11px]",
-                      bgPattern === pattern.id
-                        ? "border-rose-400 bg-rose-500 text-white"
-                        : "border-neutral-200 bg-white text-neutral-700 hover:border-rose-200",
-                    )}
+                    onClick={() => setMobileOpenSection("background")}
+                    className="flex w-full items-center justify-between py-3 text-left"
                   >
-                    {pattern.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Filter */}
-            <div className="space-y-2 border-b border-neutral-100 py-4">
-              <h2 className="text-[13px] font-bold uppercase tracking-[0.2em] text-neutral-700">
-                Filter
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                {(
-                  [
-                    { id: "none", label: "None" },
-                    { id: "sepia", label: "Sepia" },
-                    { id: "grayscale", label: "Grayscale" },
-                    { id: "warm", label: "Warm" },
-                  ] as { id: FilterOption; label: string }[]
-                ).map((opt) => (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    onClick={() => setFilter(opt.id)}
-                    className={cn(
-                      "rounded-full border px-3 py-1.5 text-[11px] transition",
-                      filter === opt.id
-                        ? "border-rose-400 bg-rose-500 text-white"
-                        : "border-neutral-200 bg-white text-neutral-700 hover:border-rose-200",
-                    )}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Stickers */}
-            <div className="space-y-2 border-b border-neutral-100 py-4">
-              <h2 className="text-[13px] font-bold uppercase tracking-[0.2em] text-neutral-700">
-                Stickers
-              </h2>
-              <p className="text-[11px] text-neutral-500">
-                Select a sticker, then click the photo strip preview to place it.
-              </p>
-              <div className="grid grid-cols-7 gap-1 pt-1">
-                {STICKER_PRESETS.map((sticker) => {
-                  const isActive = selectedStickerSrc === sticker.src;
-                  return (
-                    <button
-                      key={sticker.id}
-                      type="button"
-                      onClick={() =>
-                        setSelectedStickerSrc(isActive ? null : sticker.src)
-                      }
+                    <span className="text-xs font-bold uppercase tracking-[0.18em] text-neutral-700">
+                      Background
+                    </span>
+                    <ChevronDown
                       className={cn(
-                        "rounded-md border bg-white p-1 transition",
-                        isActive
-                          ? "border-rose-400 ring-2 ring-rose-300/60"
-                          : "border-neutral-200 hover:border-rose-200",
+                        "h-4 w-4 text-neutral-500 transition-transform",
+                        mobileOpenSection === "background" && "rotate-180",
                       )}
-                      aria-label={`Select ${sticker.label} sticker`}
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={sticker.src}
-                        alt=""
-                        className="mx-auto h-5 w-5 md:h-6 md:w-6"
-                        draggable={false}
+                    />
+                  </button>
+                  <div
+                    className={cn(
+                      "grid transition-all duration-300",
+                      mobileOpenSection === "background"
+                        ? "grid-rows-[1fr] pb-3"
+                        : "grid-rows-[0fr]",
+                    )}
+                  >
+                    <div className="overflow-hidden space-y-3">
+                      <div>
+                        <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
+                          Background Color
+                        </p>
+                        <div className="flex gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                          {BG_COLORS.map((color) => (
+                            <button
+                              key={color}
+                              type="button"
+                              onClick={() => setBgColor(color)}
+                              className={cn(
+                                "h-8 w-8 shrink-0 rounded-full border border-neutral-200",
+                                bgColor === color &&
+                                  "ring-2 ring-pink-400 ring-offset-2 ring-offset-white",
+                              )}
+                              style={{ backgroundColor: color }}
+                              aria-label={`Background color ${color}`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
+                          Background Pattern
+                        </p>
+                        <div className="grid grid-cols-2 gap-2">
+                          {BG_PATTERNS.map((pattern) => (
+                            <button
+                              key={pattern.id}
+                              type="button"
+                              onClick={() => setBgPattern(pattern.id)}
+                              className={cn(
+                                "rounded-full border px-3 py-1.5 text-[11px] transition",
+                                bgPattern === pattern.id
+                                  ? "border-pink-400 bg-pink-500 text-white"
+                                  : "border-neutral-200 bg-white text-neutral-700 hover:border-pink-200",
+                              )}
+                            >
+                              {pattern.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-neutral-200/80 bg-neutral-50/70 px-3">
+                  <button
+                    type="button"
+                    onClick={() => setMobileOpenSection("filter")}
+                    className="flex w-full items-center justify-between py-3 text-left"
+                  >
+                    <span className="text-xs font-bold uppercase tracking-[0.18em] text-neutral-700">
+                      Filter
+                    </span>
+                    <ChevronDown
+                      className={cn(
+                        "h-4 w-4 text-neutral-500 transition-transform",
+                        mobileOpenSection === "filter" && "rotate-180",
+                      )}
+                    />
+                  </button>
+                  <div
+                    className={cn(
+                      "grid transition-all duration-300",
+                      mobileOpenSection === "filter"
+                        ? "grid-rows-[1fr] pb-3"
+                        : "grid-rows-[0fr]",
+                    )}
+                  >
+                    <div className="overflow-hidden">
+                      <div className="flex flex-wrap gap-2">
+                        {(
+                          [
+                            { id: "none", label: "None" },
+                            { id: "sepia", label: "Sepia" },
+                            { id: "grayscale", label: "Grayscale" },
+                            { id: "warm", label: "Warm" },
+                          ] as { id: FilterOption; label: string }[]
+                        ).map((opt) => (
+                          <button
+                            key={opt.id}
+                            type="button"
+                            onClick={() => setFilter(opt.id)}
+                            className={cn(
+                              "rounded-full border px-3 py-1.5 text-[11px] transition",
+                              filter === opt.id
+                                ? "border-pink-400 bg-pink-500 text-white"
+                                : "border-neutral-200 bg-white text-neutral-700 hover:border-pink-200",
+                            )}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-neutral-200/80 bg-neutral-50/70 px-3">
+                  <button
+                    type="button"
+                    onClick={() => setMobileOpenSection("stickers")}
+                    className="flex w-full items-center justify-between py-3 text-left"
+                  >
+                    <span className="text-xs font-bold uppercase tracking-[0.18em] text-neutral-700">
+                      Stickers
+                    </span>
+                    <ChevronDown
+                      className={cn(
+                        "h-4 w-4 text-neutral-500 transition-transform",
+                        mobileOpenSection === "stickers" && "rotate-180",
+                      )}
+                    />
+                  </button>
+                  <div
+                    className={cn(
+                      "grid transition-all duration-300",
+                      mobileOpenSection === "stickers"
+                        ? "grid-rows-[1fr] pb-3"
+                        : "grid-rows-[0fr]",
+                    )}
+                  >
+                    <div className="overflow-hidden space-y-3">
+                      <p className="text-[11px] text-neutral-500">
+                        Select a sticker, then click the photo strip preview to place it.
+                      </p>
+                      <div className="grid grid-cols-4 gap-2">
+                        {STICKER_PRESETS.map((sticker) => {
+                          const isActive = selectedStickerSrc === sticker.src;
+                          return (
+                            <button
+                              key={sticker.id}
+                              type="button"
+                              onClick={() =>
+                                setSelectedStickerSrc(isActive ? null : sticker.src)
+                              }
+                              className={cn(
+                                "rounded-md border bg-white p-1.5 transition",
+                                isActive
+                                  ? "border-pink-400 ring-2 ring-pink-300/60"
+                                  : "border-neutral-200 hover:border-pink-200",
+                              )}
+                              aria-label={`Select ${sticker.label} sticker`}
+                            >
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={sticker.src}
+                                alt=""
+                                className="mx-auto h-6 w-6"
+                                draggable={false}
+                              />
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={handleUndoSticker}
+                          disabled={stickers.length === 0}
+                          className="rounded-full border border-neutral-200 px-3 py-1.5 text-[11px] text-neutral-700 transition hover:border-pink-200 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          Undo Sticker
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleClearStickers}
+                          disabled={stickers.length === 0}
+                          className="rounded-full border border-neutral-200 px-3 py-1.5 text-[11px] text-neutral-700 transition hover:border-pink-200 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          Clear All
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-neutral-200/80 bg-neutral-50/70 px-3">
+                  <button
+                    type="button"
+                    onClick={() => setMobileOpenSection("footer")}
+                    className="flex w-full items-center justify-between py-3 text-left"
+                  >
+                    <span className="text-xs font-bold uppercase tracking-[0.18em] text-neutral-700">
+                      Footer Text
+                    </span>
+                    <ChevronDown
+                      className={cn(
+                        "h-4 w-4 text-neutral-500 transition-transform",
+                        mobileOpenSection === "footer" && "rotate-180",
+                      )}
+                    />
+                  </button>
+                  <div
+                    className={cn(
+                      "grid transition-all duration-300",
+                      mobileOpenSection === "footer"
+                        ? "grid-rows-[1fr] pb-3"
+                        : "grid-rows-[0fr]",
+                    )}
+                  >
+                    <div className="overflow-hidden">
+                      <input
+                        type="text"
+                        value={footerText}
+                        onChange={(e) => setFooterText(e.target.value)}
+                        className="w-full rounded-full border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-800 outline-none ring-0 focus:border-pink-300 focus:ring-2 focus:ring-pink-200"
                       />
-                    </button>
-                  );
-                })}
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="flex gap-2 pt-1">
+            </aside>
+          </div>
+
+          <div className="fixed inset-x-0 bottom-0 z-30 border-t border-neutral-200 bg-white/95 px-3 pt-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] shadow-[0_-10px_30px_rgba(15,23,42,0.08)]">
+            <div className="mx-auto w-full max-w-6xl">
+              <div className="mb-2 flex items-center justify-between text-xs text-neutral-500">
                 <button
                   type="button"
-                  onClick={handleUndoSticker}
-                  disabled={stickers.length === 0}
-                  className="rounded-full border border-neutral-200 px-3 py-1.5 text-[11px] text-neutral-700 transition hover:border-rose-200 disabled:cursor-not-allowed disabled:opacity-50"
+                  onClick={handleRetake}
+                  className="text-pink-500 hover:text-pink-600"
                 >
-                  Undo Sticker
+                  ← Retake Photos
                 </button>
                 <button
                   type="button"
-                  onClick={handleClearStickers}
-                  disabled={stickers.length === 0}
-                  className="rounded-full border border-neutral-200 px-3 py-1.5 text-[11px] text-neutral-700 transition hover:border-rose-200 disabled:cursor-not-allowed disabled:opacity-50"
+                  onClick={handleStartOver}
+                  className="hover:text-neutral-700"
                 >
-                  Clear All
+                  Start Over
                 </button>
               </div>
-            </div>
-
-            {/* Footer text */}
-            <div className="space-y-2 border-b border-neutral-100 py-4">
-              <h2 className="text-[13px] font-bold uppercase tracking-[0.2em] text-neutral-700">
-                Footer Text
-              </h2>
-              <input
-                type="text"
-                value={footerText}
-                onChange={(e) => setFooterText(e.target.value)}
-                className="w-full rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-xs text-neutral-800 outline-none ring-0 focus:border-rose-300 focus:ring-2 focus:ring-rose-200"
-              />
-            </div>
-
-            {/* Download button */}
-            <div className="pt-4">
               <Button
-                className="w-full rounded-full bg-rose-500 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_16px_50px_rgba(244,114,182,0.35)] hover:bg-rose-400"
+                className="h-14 w-full rounded-full bg-pink-500 text-base font-semibold text-white shadow-[0_16px_50px_rgba(244,114,182,0.35)] hover:bg-pink-400"
                 onClick={handleDownload}
                 disabled={isExporting || photos.length === 0}
               >
                 {isExporting ? "Generating..." : "Download Photo Strip"}
               </Button>
             </div>
+          </div>
+        </div>
 
-            {/* Bottom secondary actions */}
-            <div className="mt-auto flex flex-wrap justify-between gap-2 pt-4 text-xs text-neutral-500">
-              <button
-                type="button"
-                onClick={handleRetake}
-                className="text-rose-500 hover:text-rose-600"
-              >
-                ← Retake Photos
-              </button>
-              <button
-                type="button"
-                onClick={handleStartOver}
-                className="hover:text-neutral-700"
-              >
-                Start Over
-              </button>
+        <div className="hidden md:flex md:flex-col md:gap-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-sm font-semibold uppercase tracking-[0.18em] text-pink-500">
+                Step 3 · Customize Your Photo Strip &amp; Download
+              </h1>
             </div>
-          </aside>
+            <div className="hidden text-xs text-neutral-500 md:block">
+              Template:{" "}
+              <span className="font-semibold text-neutral-800">
+                {baseTemplate.name}
+              </span>
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:items-start md:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+            {/* Left: live preview */}
+            <section className="flex items-center justify-center rounded-[2rem] border border-neutral-200 bg-white/80 px-4 py-6 shadow-[0_18px_70px_rgba(15,23,42,0.12)] md:px-6">
+              <div className="flex flex-col items-center gap-4">
+                <div className="relative h-[780px] w-[240px]">
+                  <PhotoStripPreview
+                    ref={previewRef}
+                    template={effectiveTemplate}
+                    photos={photos}
+                    stickers={stickers}
+                    scale={PREVIEW_SCALE}
+                    onClick={handlePreviewClick}
+                    className={cn(
+                      "absolute left-1/2 top-0 -translate-x-1/2",
+                      selectedStickerSrc ? "cursor-crosshair" : "cursor-default",
+                    )}
+                  />
+                </div>
+                <p className="text-xs text-neutral-500">
+                  {selectedStickerSrc
+                    ? "Sticker selected: click the preview to place it."
+                    : "Preview at 60% scale. Downloaded image will be full resolution."}
+                </p>
+              </div>
+            </section>
+
+            {/* Right: controls */}
+            <aside className="flex flex-col rounded-[2rem] border border-neutral-200 bg-white/90 p-4 shadow-[0_18px_70px_rgba(15,23,42,0.12)] md:p-6">
+              {/* Background Color */}
+              <div className="space-y-2 border-b border-neutral-100 pb-4">
+                <h2 className="text-[13px] font-bold uppercase tracking-[0.2em] text-neutral-700">
+                  Background Color
+                </h2>
+                <div className="flex flex-wrap gap-2">
+                  {BG_COLORS.map((color) => (
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={() => setBgColor(color)}
+                      className={cn(
+                        "h-7 w-7 rounded-full border border-neutral-200",
+                        "transition-shadow",
+                        bgColor === color &&
+                          "ring-2 ring-pink-400 ring-offset-2 ring-offset-white",
+                      )}
+                      style={{ backgroundColor: color }}
+                      aria-label={`Background color ${color}`}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Background Pattern */}
+              <div className="space-y-2 border-b border-neutral-100 py-4">
+                <h2 className="text-[13px] font-bold uppercase tracking-[0.2em] text-neutral-700">
+                  Background Pattern
+                </h2>
+                <div className="grid grid-cols-4 gap-2 lg:grid-cols-5">
+                  {BG_PATTERNS.map((pattern) => (
+                    <button
+                      key={pattern.id}
+                      type="button"
+                      onClick={() => setBgPattern(pattern.id)}
+                      className={cn(
+                        "rounded-full border px-2 py-1 text-[10px] leading-none transition md:text-[11px]",
+                        bgPattern === pattern.id
+                          ? "border-pink-400 bg-pink-500 text-white"
+                          : "border-neutral-200 bg-white text-neutral-700 hover:border-pink-200",
+                      )}
+                    >
+                      {pattern.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Filter */}
+              <div className="space-y-2 border-b border-neutral-100 py-4">
+                <h2 className="text-[13px] font-bold uppercase tracking-[0.2em] text-neutral-700">
+                  Filter
+                </h2>
+                <div className="flex flex-wrap gap-2">
+                  {(
+                    [
+                      { id: "none", label: "None" },
+                      { id: "sepia", label: "Sepia" },
+                      { id: "grayscale", label: "Grayscale" },
+                      { id: "warm", label: "Warm" },
+                    ] as { id: FilterOption; label: string }[]
+                  ).map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setFilter(opt.id)}
+                      className={cn(
+                        "rounded-full border px-3 py-1.5 text-[11px] transition",
+                        filter === opt.id
+                          ? "border-pink-400 bg-pink-500 text-white"
+                          : "border-neutral-200 bg-white text-neutral-700 hover:border-pink-200",
+                      )}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Stickers */}
+              <div className="space-y-2 border-b border-neutral-100 py-4">
+                <h2 className="text-[13px] font-bold uppercase tracking-[0.2em] text-neutral-700">
+                  Stickers
+                </h2>
+                <p className="text-[11px] text-neutral-500">
+                  Select a sticker, then click the photo strip preview to place it.
+                </p>
+                <div className="grid grid-cols-7 gap-1 pt-1">
+                  {STICKER_PRESETS.map((sticker) => {
+                    const isActive = selectedStickerSrc === sticker.src;
+                    return (
+                      <button
+                        key={sticker.id}
+                        type="button"
+                        onClick={() =>
+                          setSelectedStickerSrc(isActive ? null : sticker.src)
+                        }
+                        className={cn(
+                          "rounded-md border bg-white p-1 transition",
+                          isActive
+                            ? "border-pink-400 ring-2 ring-pink-300/60"
+                            : "border-neutral-200 hover:border-pink-200",
+                        )}
+                        aria-label={`Select ${sticker.label} sticker`}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={sticker.src}
+                          alt=""
+                          className="mx-auto h-5 w-5 md:h-6 md:w-6"
+                          draggable={false}
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="flex gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={handleUndoSticker}
+                    disabled={stickers.length === 0}
+                    className="rounded-full border border-neutral-200 px-3 py-1.5 text-[11px] text-neutral-700 transition hover:border-pink-200 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Undo Sticker
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleClearStickers}
+                    disabled={stickers.length === 0}
+                    className="rounded-full border border-neutral-200 px-3 py-1.5 text-[11px] text-neutral-700 transition hover:border-pink-200 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Clear All
+                  </button>
+                </div>
+              </div>
+
+              {/* Footer text */}
+              <div className="space-y-2 border-b border-neutral-100 py-4">
+                <h2 className="text-[13px] font-bold uppercase tracking-[0.2em] text-neutral-700">
+                  Footer Text
+                </h2>
+                <input
+                  type="text"
+                  value={footerText}
+                  onChange={(e) => setFooterText(e.target.value)}
+                  className="w-full rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-xs text-neutral-800 outline-none ring-0 focus:border-pink-300 focus:ring-2 focus:ring-pink-200"
+                />
+              </div>
+
+              {/* Download button */}
+              <div className="pt-4">
+                <Button
+                  className="w-full rounded-full bg-pink-500 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_16px_50px_rgba(244,114,182,0.35)] hover:bg-pink-400"
+                  onClick={handleDownload}
+                  disabled={isExporting || photos.length === 0}
+                >
+                  {isExporting ? "Generating..." : "Download Photo Strip"}
+                </Button>
+              </div>
+
+              {/* Bottom secondary actions */}
+              <div className="flex flex-wrap justify-between gap-2 pt-4 text-xs text-neutral-500">
+                <button
+                  type="button"
+                  onClick={handleRetake}
+                  className="text-pink-500 hover:text-pink-600"
+                >
+                  ← Retake Photos
+                </button>
+                <button
+                  type="button"
+                  onClick={handleStartOver}
+                  className="hover:text-neutral-700"
+                >
+                  Start Over
+                </button>
+              </div>
+            </aside>
+          </div>
         </div>
       </div>
 
@@ -465,7 +772,7 @@ function CustomizeContent() {
 
 export default function CustomizePage() {
   return (
-    <Suspense fallback={<div className="flex min-h-[50vh] items-center justify-center text-rose-500">Loading...</div>}>
+    <Suspense fallback={<div className="flex min-h-[50vh] items-center justify-center text-pink-500">Loading...</div>}>
       <CustomizeContent />
     </Suspense>
   );

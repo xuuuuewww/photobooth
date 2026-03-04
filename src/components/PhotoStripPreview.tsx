@@ -121,6 +121,8 @@ export const PhotoStripPreview = React.forwardRef<
                 <img
                   src={src}
                   alt={`Photo ${index + 1}`}
+                  loading="lazy"
+                  decoding="async"
                   className="h-full w-full object-cover"
                   style={filterStyle}
                 />

@@ -5,6 +5,7 @@ import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
+import { MobileNavMenu } from "@/components/MobileNavMenu";
 
 export const metadata: Metadata = {
   title: "Photobooth Online Free – Create Photo Booth Strips Instantly without Sign Up",
@@ -41,21 +42,22 @@ export default function RootLayout({
                     height={44}
                     className="h-10 w-10 object-cover md:h-11 md:w-11"
                   />
-                  <span className="text-[13px] font-semibold uppercase tracking-[0.22em] text-rose-700 md:text-[14px]">
+                  <span className="text-[13px] font-semibold uppercase tracking-[0.22em] text-pink-700 md:text-[14px]">
                     PHOTOBOOTH.online
                   </span>
                 </Link>
-                <nav className="hidden items-center gap-8 text-[14px] font-semibold text-rose-500/90 md:flex">
-                  <Link href="/" className="transition hover:text-rose-700">
+                <nav className="hidden items-center gap-8 text-[14px] font-semibold text-pink-500/90 md:flex">
+                  <Link href="/" className="transition hover:text-pink-700">
                     Home
                   </Link>
-                  <Link href="/capture" className="transition hover:text-rose-700">
+                  <Link href="/capture" className="transition hover:text-pink-700">
                     Capture
                   </Link>
-                  <Link href="/customize" className="transition hover:text-rose-700">
+                  <Link href="/customize" className="transition hover:text-pink-700">
                     Customize
                   </Link>
                 </nav>
+                <MobileNavMenu />
               </div>
             </header>
             <main className="flex-1 pt-[52px] md:pt-[60px]">{children}</main>

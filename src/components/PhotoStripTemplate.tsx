@@ -54,9 +54,9 @@ const TEMPLATE_STYLES: Record<
     stripBg: "bg-pink-50",
     photoWrap: "rounded-sm overflow-hidden",
     photoImg: "saturate-110",
-    footerText: "text-rose-900/80",
+    footerText: "text-pink-900/80",
     footerLogoFont: "font-medium tracking-[0.2em]",
-    placeholder: "bg-rose-100/70 text-rose-700/70",
+    placeholder: "bg-pink-100/70 text-pink-700/70",
   },
 };
 
