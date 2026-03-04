@@ -320,7 +320,7 @@ function CaptureContent() {
         </aside>
       </div>
 
-      <div className="mx-auto flex h-full w-full max-w-6xl flex-col pb-[calc(24rem+env(safe-area-inset-bottom))] md:hidden">
+      <div className="mx-auto flex h-full w-full max-w-6xl flex-col pb-[calc(21.5rem+env(safe-area-inset-bottom))] md:hidden">
         <section className="relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-[2rem] border border-neutral-200 bg-white/80 shadow-[0_18px_70px_rgba(15,23,42,0.12)]">
           <div className="flex items-center justify-between border-b border-neutral-200/70 px-4 py-3">
             <div className="text-sm font-semibold tracking-tight text-pink-600">
@@ -382,14 +382,14 @@ function CaptureContent() {
 
       <div className="fixed inset-x-0 bottom-0 z-40 md:hidden">
         <div className="mx-auto w-full max-w-6xl px-3 pb-[calc(env(safe-area-inset-bottom)+0.5rem)]">
-          <aside className="rounded-[1.6rem] border border-neutral-200 bg-white/95 p-3 shadow-[0_18px_70px_rgba(15,23,42,0.15)] backdrop-blur-sm">
+          <aside className="rounded-[1.6rem] border border-neutral-200 bg-white/95 p-2.5 shadow-[0_18px_70px_rgba(15,23,42,0.15)] backdrop-blur-sm">
             <div className="border-b border-neutral-200/70 pb-2">
               <div className="text-xs font-medium uppercase tracking-[0.22em] text-neutral-500">
                 Shot {Math.max(1, shotIndex)} / 4
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 py-2.5">
+            <div className="grid grid-cols-2 gap-1.5 py-2">
               {Array.from({ length: 4 }).map((_, idx) => {
                 const src = photos[idx];
                 const isActive = idx === activeThumbIndex;
@@ -399,7 +399,7 @@ function CaptureContent() {
                     type="button"
                     onClick={() => setActiveThumbIndex(idx)}
                     className={cn(
-                      "aspect-[4/3] overflow-hidden rounded-xl border bg-neutral-100 text-left transition",
+                      "aspect-[16/10] overflow-hidden rounded-lg border bg-neutral-100 text-left transition",
                       isActive ? "border-pink-300 ring-2 ring-pink-200/70" : "border-neutral-200",
                     )}
                     aria-label={`Thumbnail ${idx + 1}`}

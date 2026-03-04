@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import * as htmlToImage from "html-to-image";
-import { ChevronDown, Pencil } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   PhotoStripPreview,
@@ -272,35 +272,59 @@ function CustomizeContent() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-neutral-50 px-3 py-4 md:px-8 md:py-6">
+    <div className="min-h-[calc(100vh-4rem)] bg-neutral-50 px-3 py-2 md:px-8 md:py-6">
       <div className="mx-auto w-full max-w-6xl">
         <div className="flex h-[calc(100dvh-4.5rem)] min-h-0 flex-col overflow-hidden md:hidden">
-          <div className="sticky top-0 z-20 bg-neutral-50 pb-2">
-            <h1 className="px-1 pb-2 text-sm font-semibold uppercase tracking-[0.18em] text-pink-500">
+          <div className="sticky top-0 z-20 bg-neutral-50 pb-1">
+            <h1 className="px-1 pb-1 text-[11px] font-semibold uppercase tracking-[0.12em] whitespace-nowrap overflow-hidden text-ellipsis text-pink-500">
               Step 3 · Customize Your Photo Strip &amp; Download
             </h1>
-            <section className="relative flex h-[clamp(22rem,42vh,26rem)] items-center justify-center rounded-[1.75rem] border border-neutral-200 bg-white/90 px-4 py-4 shadow-[0_18px_70px_rgba(15,23,42,0.12)]">
-              <div className="relative h-[338px] w-[104px]">
-                <PhotoStripPreview
-                  ref={previewRef}
-                  template={effectiveTemplate}
-                  photos={photos}
-                  stickers={stickers}
-                  scale={MOBILE_PREVIEW_SCALE}
-                  onClick={handlePreviewClick}
-                  className={cn(
-                    "absolute left-1/2 top-0 -translate-x-1/2",
-                    selectedStickerSrc ? "cursor-crosshair" : "cursor-default",
-                  )}
-                />
-              </div>
-              <div className="absolute bottom-3 right-3 rounded-full border border-pink-200 bg-white/95 p-2 text-pink-500 shadow-sm">
-                <Pencil className="h-3.5 w-3.5" />
+            <section className="relative flex h-[clamp(21rem,41vh,24rem)] items-center rounded-[1.75rem] border border-neutral-200 bg-white/90 px-3 py-3 shadow-[0_18px_70px_rgba(15,23,42,0.12)]">
+              <div className="flex w-full items-center justify-center gap-2">
+                <div className="relative flex w-[68%] max-w-[15rem] flex-none items-center justify-center rounded-[1.25rem] bg-neutral-50/60 py-2">
+                  <div className="relative h-[338px] w-[104px]">
+                    <PhotoStripPreview
+                      ref={previewRef}
+                      template={effectiveTemplate}
+                      photos={photos}
+                      stickers={stickers}
+                      scale={MOBILE_PREVIEW_SCALE}
+                      onClick={handlePreviewClick}
+                      className={cn(
+                        "absolute left-1/2 top-0 -translate-x-1/2",
+                        selectedStickerSrc ? "cursor-crosshair" : "cursor-default",
+                      )}
+                    />
+                  </div>
+                </div>
+                <div className="w-[7.8rem] shrink-0 space-y-2">
+                  <Button
+                    className="h-11 w-full rounded-full bg-pink-500 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(244,114,182,0.3)] hover:bg-pink-400"
+                    onClick={handleDownload}
+                    disabled={isExporting || photos.length === 0}
+                  >
+                    {isExporting ? "Generating..." : "Download"}
+                  </Button>
+                  <button
+                    type="button"
+                    onClick={handleRetake}
+                    className="inline-flex h-10 w-full items-center justify-center rounded-full border border-pink-200 bg-white px-3 text-xs font-semibold text-pink-600 transition hover:bg-pink-50"
+                  >
+                    Retake
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleStartOver}
+                    className="inline-flex h-10 w-full items-center justify-center rounded-full border border-pink-200 bg-white px-3 text-xs font-semibold text-pink-600 transition hover:bg-pink-50"
+                  >
+                    Start Over
+                  </button>
+                </div>
               </div>
             </section>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto pb-[11.5rem]">
+          <div className="min-h-0 flex-1 overflow-y-auto pb-3">
             <aside className="rounded-[1.5rem] border border-neutral-200 bg-white/95 p-4 shadow-[0_18px_70px_rgba(15,23,42,0.1)]">
               <div className="space-y-3">
                 <div className="rounded-xl border border-neutral-200/80 bg-neutral-50/70 px-3">
@@ -545,33 +569,6 @@ function CustomizeContent() {
             </aside>
           </div>
 
-          <div className="fixed inset-x-0 bottom-0 z-30 border-t border-neutral-200 bg-white/95 px-3 pt-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] shadow-[0_-10px_30px_rgba(15,23,42,0.08)]">
-            <div className="mx-auto w-full max-w-6xl">
-              <div className="mb-2 flex items-center justify-between text-xs text-neutral-500">
-                <button
-                  type="button"
-                  onClick={handleRetake}
-                  className="text-pink-500 hover:text-pink-600"
-                >
-                  ← Retake Photos
-                </button>
-                <button
-                  type="button"
-                  onClick={handleStartOver}
-                  className="hover:text-neutral-700"
-                >
-                  Start Over
-                </button>
-              </div>
-              <Button
-                className="h-14 w-full rounded-full bg-pink-500 text-base font-semibold text-white shadow-[0_16px_50px_rgba(244,114,182,0.35)] hover:bg-pink-400"
-                onClick={handleDownload}
-                disabled={isExporting || photos.length === 0}
-              >
-                {isExporting ? "Generating..." : "Download Photo Strip"}
-              </Button>
-            </div>
-          </div>
         </div>
 
         <div className="hidden md:flex md:flex-col md:gap-3">
