@@ -174,6 +174,20 @@ function CustomizeContent() {
 
       const fileName = `photobooth-${effectiveTemplate.id}-${Date.now()}.png`;
       const file = new File([blob], fileName, { type: "image/png" });
+      const isMobile = /iPhone|iPad|iPod|Android|Mobile/i.test(
+        navigator.userAgent,
+      );
+      const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+      const objectUrl = URL.createObjectURL(blob);
+
+      // On iOS Safari, opening the image is the most reliable way to allow
+      // "Save to Photos" via long-press.
+      if (isIOS) {
+        window.open(objectUrl, "_blank", "noopener,noreferrer");
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 30_000);
+        return;
+      }
 
       // Preferred mobile path: invoke native share sheet so users can save to Photos.
       if (
@@ -186,13 +200,9 @@ function CustomizeContent() {
           title: "Photo Strip",
           files: [file],
         });
+        URL.revokeObjectURL(objectUrl);
         return;
       }
-
-      const objectUrl = URL.createObjectURL(blob);
-      const isMobile = /iPhone|iPad|iPod|Android|Mobile/i.test(
-        navigator.userAgent,
-      );
 
       if (isMobile) {
         window.open(objectUrl, "_blank", "noopener,noreferrer");
@@ -264,12 +274,12 @@ function CustomizeContent() {
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-neutral-50 px-3 py-4 md:px-8 md:py-6">
       <div className="mx-auto w-full max-w-6xl">
-        <div className="h-[calc(100dvh-4.5rem)] overflow-hidden md:hidden">
+        <div className="flex h-[calc(100dvh-4.5rem)] min-h-0 flex-col overflow-hidden md:hidden">
           <div className="sticky top-0 z-20 bg-neutral-50 pb-2">
             <h1 className="px-1 pb-2 text-sm font-semibold uppercase tracking-[0.18em] text-pink-500">
               Step 3 · Customize Your Photo Strip &amp; Download
             </h1>
-            <section className="relative flex h-[40vh] min-h-[300px] items-center justify-center rounded-[1.75rem] border border-neutral-200 bg-white/90 px-4 py-4 shadow-[0_18px_70px_rgba(15,23,42,0.12)]">
+            <section className="relative flex h-[clamp(22rem,42vh,26rem)] items-center justify-center rounded-[1.75rem] border border-neutral-200 bg-white/90 px-4 py-4 shadow-[0_18px_70px_rgba(15,23,42,0.12)]">
               <div className="relative h-[338px] w-[104px]">
                 <PhotoStripPreview
                   ref={previewRef}
@@ -290,7 +300,7 @@ function CustomizeContent() {
             </section>
           </div>
 
-          <div className="h-[calc(100%-40vh-3.75rem)] overflow-y-auto pb-[11.5rem]">
+          <div className="min-h-0 flex-1 overflow-y-auto pb-[11.5rem]">
             <aside className="rounded-[1.5rem] border border-neutral-200 bg-white/95 p-4 shadow-[0_18px_70px_rgba(15,23,42,0.1)]">
               <div className="space-y-3">
                 <div className="rounded-xl border border-neutral-200/80 bg-neutral-50/70 px-3">

@@ -334,7 +334,7 @@ function CaptureContent() {
             </div>
           </div>
 
-          <div className="relative h-[clamp(11.25rem,42dvh,22rem)] w-full bg-neutral-900">
+          <div className="relative aspect-[4/3] w-full bg-neutral-900">
             <video
               ref={videoRef}
               className="h-full w-full object-cover"
