@@ -4,6 +4,7 @@ import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import * as htmlToImage from "html-to-image";
 import { ChevronDown } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   PhotoStripPreview,
@@ -76,8 +77,8 @@ async function waitForImagesReady(
 
   await Promise.all(
     images.map(
-      (img) =>
-        new Promise<void>((resolve) => {
+      async (img) => {
+        await new Promise<void>((resolve) => {
           if (img.complete && img.naturalWidth > 0) {
             resolve();
             return;
@@ -97,9 +98,22 @@ async function waitForImagesReady(
           const timer = window.setTimeout(handleDone, timeoutMs);
           img.addEventListener("load", handleDone);
           img.addEventListener("error", handleDone);
-        }),
+        });
+
+        if (typeof img.decode === "function") {
+          try {
+            await img.decode();
+          } catch {
+            // decode can reject for cached/cross-origin edge cases; load completion is enough fallback
+          }
+        }
+      },
     ),
   );
+
+  // Wait two paint frames so decoded images are fully drawn before export.
+  await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+  await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
 }
 
 function CustomizeContent() {
@@ -197,6 +211,9 @@ function CustomizeContent() {
   const handleDownload = async () => {
     if (!exportRef.current) return;
     setIsExporting(true);
+    const loadingToastId = toast.loading("Your photo strip is ready...", {
+      icon: <span className="inline-block animate-pulse">⏳</span>,
+    });
     try {
       await waitForImagesReady(exportRef.current);
 
@@ -221,6 +238,7 @@ function CustomizeContent() {
       // On iOS Safari, opening the image is the most reliable way to allow
       // "Save to Photos" via long-press.
       if (isIOS) {
+        toast.dismiss(loadingToastId);
         window.open(objectUrl, "_blank", "noopener,noreferrer");
         setTimeout(() => URL.revokeObjectURL(objectUrl), 30_000);
         return;
@@ -233,6 +251,7 @@ function CustomizeContent() {
         typeof navigator.canShare === "function" &&
         navigator.canShare({ files: [file] })
       ) {
+        toast.dismiss(loadingToastId);
         await navigator.share({
           title: "Photo Strip",
           files: [file],
@@ -242,6 +261,7 @@ function CustomizeContent() {
       }
 
       if (isMobile) {
+        toast.dismiss(loadingToastId);
         window.open(objectUrl, "_blank", "noopener,noreferrer");
         setTimeout(() => URL.revokeObjectURL(objectUrl), 30_000);
         return;
@@ -251,10 +271,12 @@ function CustomizeContent() {
       link.href = objectUrl;
       link.download = fileName;
       document.body.appendChild(link);
+      toast.dismiss(loadingToastId);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(objectUrl);
     } catch (err) {
+      toast.dismiss(loadingToastId);
       if (err instanceof DOMException && err.name === "AbortError") {
         return;
       }
