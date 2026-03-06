@@ -34,7 +34,8 @@ function CaptureContent() {
     [templateId],
   );
 
-  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const desktopVideoRef = useRef<HTMLVideoElement | null>(null);
+  const mobileVideoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const [photos, setPhotos] = useState<string[]>([]);
@@ -44,6 +45,26 @@ function CaptureContent() {
   const [flash, setFlash] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeThumbIndex, setActiveThumbIndex] = useState(0);
+  const [latestCapturedPreview, setLatestCapturedPreview] = useState<string | null>(null);
+
+  const getActiveVideo = () => {
+    const candidates = [mobileVideoRef.current, desktopVideoRef.current].filter(
+      (el): el is HTMLVideoElement => Boolean(el),
+    );
+    if (candidates.length === 0) return null;
+
+    let active = candidates[0];
+    let activeArea = 0;
+    for (const candidate of candidates) {
+      const rect = candidate.getBoundingClientRect();
+      const area = rect.width * rect.height;
+      if (area > activeArea) {
+        active = candidate;
+        activeArea = area;
+      }
+    }
+    return active;
+  };
 
   useEffect(() => {
     setPhotos(safeParsePhotos(window.localStorage.getItem(STORAGE_KEY)));
@@ -55,18 +76,46 @@ function CaptureContent() {
     const start = async () => {
       try {
         setError(null);
-        const s = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "user" },
-          audio: false,
-        });
+        let s: MediaStream;
+        try {
+          s = await navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: "user",
+              width: { ideal: 1280 },
+              height: { ideal: 960 },
+              aspectRatio: { ideal: 4 / 3 },
+            },
+            audio: false,
+          });
+        } catch {
+          // Fallback for devices that reject stricter ratio constraints.
+          s = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "user" },
+            audio: false,
+          });
+        }
         if (!active) {
           s.getTracks().forEach((t) => t.stop());
           return;
         }
         setStream(s);
-        if (videoRef.current) {
-          videoRef.current.srcObject = s;
-          await videoRef.current.play();
+        const videos = [desktopVideoRef.current, mobileVideoRef.current].filter(
+          (el): el is HTMLVideoElement => Boolean(el),
+        );
+        for (const video of videos) {
+          video.srcObject = s;
+        }
+        await Promise.all(
+          videos.map((video) =>
+            video.play().catch(() => {
+              // Some browsers may delay autoplay until first interaction.
+            }),
+          ),
+        );
+        const fallbackVideo = getActiveVideo();
+        if (!videos.length && fallbackVideo) {
+          fallbackVideo.srcObject = s;
+          await fallbackVideo.play();
         }
       } catch (e) {
         console.error(e);
@@ -92,40 +141,45 @@ function CaptureContent() {
   }, [stream]);
 
   const shotIndex = Math.min(photos.length + (isShooting ? 1 : 0), 4);
+  const selectedPhoto = photos[activeThumbIndex] ?? null;
+  const topPreviewPhoto = isShooting ? latestCapturedPreview : selectedPhoto;
 
   const captureBase64 = async (): Promise<string | null> => {
-    const video = videoRef.current;
+    const video = getActiveVideo();
     const canvas = canvasRef.current;
     if (!video || !canvas) return null;
-    const w = video.videoWidth;
-    const h = video.videoHeight;
-    if (!w || !h) return null;
-    const targetRatio = 4 / 3;
-    const sourceRatio = w / h;
+    const rect = video.getBoundingClientRect();
+    const canvasWidth = Math.max(1, Math.round(rect.width));
+    const canvasHeight = Math.max(1, Math.round(rect.height));
+    const sourceWidth = video.videoWidth;
+    const sourceHeight = video.videoHeight;
+    if (!sourceWidth || !sourceHeight) return null;
+    const targetRatio = canvasWidth / canvasHeight;
+    const sourceRatio = sourceWidth / sourceHeight;
 
     let sx = 0;
     let sy = 0;
-    let sw = w;
-    let sh = h;
+    let sw = sourceWidth;
+    let sh = sourceHeight;
 
     if (sourceRatio > targetRatio) {
-      sw = Math.round(h * targetRatio);
-      sx = Math.round((w - sw) / 2);
+      sw = Math.round(sourceHeight * targetRatio);
+      sx = Math.round((sourceWidth - sw) / 2);
     } else if (sourceRatio < targetRatio) {
-      sh = Math.round(w / targetRatio);
-      sy = Math.round((h - sh) / 2);
+      sh = Math.round(sourceWidth / targetRatio);
+      sy = Math.round((sourceHeight - sh) / 2);
     }
 
-    canvas.width = sw;
-    canvas.height = sh;
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
     const ctx = canvas.getContext("2d");
     if (!ctx) return null;
 
-    // mirror capture to match preview
+    // Mirror and crop exactly like object-cover preview.
     ctx.save();
-    ctx.translate(sw, 0);
+    ctx.translate(canvasWidth, 0);
     ctx.scale(-1, 1);
-    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, sw, sh);
+    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, canvasWidth, canvasHeight);
     ctx.restore();
 
     return canvas.toDataURL("image/png");
@@ -137,11 +191,13 @@ function CaptureContent() {
 
     setIsShooting(true);
     setPhotos([]);
+    setLatestCapturedPreview(null);
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
 
     const captured: string[] = [];
 
     for (let i = 0; i < 4; i++) {
+      setLatestCapturedPreview(null);
       for (let t = 3; t >= 1; t--) {
         setCountdown(t);
         await sleep(1000);
@@ -155,6 +211,8 @@ function CaptureContent() {
       if (dataUrl) {
         captured.push(dataUrl);
         setPhotos([...captured]);
+        setActiveThumbIndex(captured.length - 1);
+        setLatestCapturedPreview(dataUrl);
         window.localStorage.setItem(STORAGE_KEY, JSON.stringify(captured));
       }
 
@@ -176,6 +234,7 @@ function CaptureContent() {
     setIsShooting(false);
     setPhotos([]);
     setActiveThumbIndex(0);
+    setLatestCapturedPreview(null);
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
   };
 
@@ -188,7 +247,7 @@ function CaptureContent() {
   }, [photos.length]);
 
   return (
-    <div className="h-[calc(100dvh-46px)] overflow-hidden bg-neutral-50 px-3 py-3 md:min-h-[calc(100vh-4rem)] md:h-auto md:overflow-visible md:px-8 md:py-6">
+    <div className="h-[calc(100dvh-46px)] overflow-hidden bg-neutral-50 px-3 pb-3 pt-0 md:min-h-[calc(100vh-4rem)] md:h-auto md:overflow-visible md:px-8 md:py-6">
       <div className="mx-auto hidden w-full max-w-6xl gap-4 md:grid md:grid-cols-[minmax(0,1fr)_24rem] lg:grid-cols-[minmax(0,1fr)_26rem]">
         <section className="relative overflow-hidden rounded-[2rem] border border-neutral-200 bg-white/80 shadow-[0_18px_70px_rgba(15,23,42,0.12)]">
           <div className="flex items-center justify-between border-b border-neutral-200/70 px-4 py-3">
@@ -205,7 +264,7 @@ function CaptureContent() {
 
           <div className="relative aspect-[4/3] w-full bg-neutral-900">
             <video
-              ref={videoRef}
+              ref={desktopVideoRef}
               className="h-full w-full object-contain"
               style={{ transform: "scaleX(-1)" }}
               playsInline
@@ -213,13 +272,22 @@ function CaptureContent() {
               autoPlay
             />
 
+            {topPreviewPhoto && countdown === null && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={topPreviewPhoto}
+                alt="Selected capture preview"
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            )}
+
             {flash && (
               <div className="pointer-events-none absolute inset-0 bg-white/80" />
             )}
 
             {countdown !== null && (
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/20">
-                <div className="flex h-28 w-28 items-center justify-center rounded-full bg-white/80 text-5xl font-semibold text-pink-600 shadow-[0_20px_70px_rgba(244,114,182,0.35)] backdrop-blur-sm">
+              <div className="pointer-events-none absolute left-4 top-4">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/50 text-3xl font-semibold text-pink-600 shadow-[0_10px_30px_rgba(244,114,182,0.18)] backdrop-blur-sm">
                   {countdown}
                 </div>
               </div>
@@ -320,23 +388,11 @@ function CaptureContent() {
         </aside>
       </div>
 
-      <div className="mx-auto flex h-full w-full max-w-6xl flex-col pb-[calc(21.5rem+env(safe-area-inset-bottom))] md:hidden">
-        <section className="relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-[2rem] border border-neutral-200 bg-white/80 shadow-[0_18px_70px_rgba(15,23,42,0.12)]">
-          <div className="flex items-center justify-between border-b border-neutral-200/70 px-4 py-3">
-            <div className="text-sm font-semibold tracking-tight text-pink-600">
-              Capture
-            </div>
-            <div className="text-xs text-neutral-500">
-              Template:{" "}
-              <span className="font-medium text-neutral-700">
-                {template?.name ?? "Unknown"}
-              </span>
-            </div>
-          </div>
-
-          <div className="relative aspect-[4/3] w-full bg-neutral-900">
+      <div className="mx-auto flex h-full w-full max-w-6xl flex-col pb-[calc(24rem+env(safe-area-inset-bottom))] pt-[5px] md:hidden">
+        <section className="relative flex min-h-0 flex-none flex-col overflow-hidden rounded-[2rem] border border-neutral-200 bg-white/80 shadow-[0_18px_70px_rgba(15,23,42,0.12)]">
+          <div className="relative aspect-[4/3] w-full shrink-0 bg-neutral-900">
             <video
-              ref={videoRef}
+              ref={mobileVideoRef}
               className="h-full w-full object-cover"
               style={{ transform: "scaleX(-1)" }}
               playsInline
@@ -344,13 +400,22 @@ function CaptureContent() {
               autoPlay
             />
 
+            {topPreviewPhoto && countdown === null && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={topPreviewPhoto}
+                alt="Selected capture preview"
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            )}
+
             {flash && (
               <div className="pointer-events-none absolute inset-0 bg-white/80" />
             )}
 
             {countdown !== null && (
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/20">
-                <div className="flex h-24 w-24 items-center justify-center rounded-full bg-white/80 text-5xl font-semibold text-pink-600 shadow-[0_20px_70px_rgba(244,114,182,0.35)] backdrop-blur-sm">
+              <div className="pointer-events-none absolute left-3 top-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/50 text-2xl font-semibold text-pink-600 shadow-[0_10px_24px_rgba(244,114,182,0.16)] backdrop-blur-sm">
                   {countdown}
                 </div>
               </div>
@@ -382,14 +447,8 @@ function CaptureContent() {
 
       <div className="fixed inset-x-0 bottom-0 z-40 md:hidden">
         <div className="mx-auto w-full max-w-6xl px-3 pb-[calc(env(safe-area-inset-bottom)+0.5rem)]">
-          <aside className="rounded-[1.6rem] border border-neutral-200 bg-white/95 p-2.5 shadow-[0_18px_70px_rgba(15,23,42,0.15)] backdrop-blur-sm">
-            <div className="border-b border-neutral-200/70 pb-2">
-              <div className="text-xs font-medium uppercase tracking-[0.22em] text-neutral-500">
-                Shot {Math.max(1, shotIndex)} / 4
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-1.5 py-2">
+          <aside className="rounded-[1.6rem] border border-neutral-200 bg-white/95 px-2.5 pb-2.5 pt-2.5 shadow-[0_18px_70px_rgba(15,23,42,0.15)] backdrop-blur-sm">
+            <div className="grid grid-cols-2 gap-2 py-1">
               {Array.from({ length: 4 }).map((_, idx) => {
                 const src = photos[idx];
                 const isActive = idx === activeThumbIndex;
@@ -399,7 +458,7 @@ function CaptureContent() {
                     type="button"
                     onClick={() => setActiveThumbIndex(idx)}
                     className={cn(
-                      "aspect-[16/10] overflow-hidden rounded-lg border bg-neutral-100 text-left transition",
+                      "aspect-[4/3] overflow-hidden rounded-xl border bg-neutral-100 text-left transition",
                       isActive ? "border-pink-300 ring-2 ring-pink-200/70" : "border-neutral-200",
                     )}
                     aria-label={`Thumbnail ${idx + 1}`}
@@ -412,8 +471,8 @@ function CaptureContent() {
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      <div className="flex h-full items-center justify-center text-xs text-neutral-400">
-                        Empty
+                      <div className="flex h-full items-center justify-center text-xs font-medium text-neutral-400">
+                        Shot {idx + 1}/4
                       </div>
                     )}
                   </button>
@@ -425,19 +484,19 @@ function CaptureContent() {
               <div className="grid grid-cols-4 gap-2">
                 <button
                   type="button"
-                  onClick={handleContinue}
-                  className="col-span-3 inline-flex h-11 w-full items-center justify-center rounded-full bg-pink-500 px-4 text-sm font-semibold text-white shadow-[0_16px_50px_rgba(244,114,182,0.35)] transition hover:bg-pink-400"
-                >
-                  Continue
-                </button>
-
-                <button
-                  type="button"
                   onClick={handleRetake}
                   className="col-span-1 inline-flex h-11 w-full items-center justify-center rounded-full border border-pink-200 bg-white px-3 text-sm font-semibold text-pink-600 transition hover:bg-pink-50"
                 >
                   <RotateCcw className="h-4 w-4" />
                   Retake
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleContinue}
+                  className="col-span-3 inline-flex h-11 w-full items-center justify-center rounded-full bg-pink-500 px-4 text-sm font-semibold text-white shadow-[0_16px_50px_rgba(244,114,182,0.35)] transition hover:bg-pink-400"
+                >
+                  Continue
                 </button>
               </div>
             ) : (

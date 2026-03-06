@@ -2,7 +2,6 @@
 
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import * as htmlToImage from "html-to-image";
 import { ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -19,6 +18,13 @@ const STRIP_HEIGHT = 1300;
 const PREVIEW_SCALE = 0.6;
 const MOBILE_PREVIEW_SCALE = 0.26;
 const DEFAULT_STICKER_SIZE = 74;
+const EXPORT_SCALE = 2;
+const STRIP_PADDING = 30;
+const PHOTO_SLOT_WIDTH = 340;
+const PHOTO_SLOT_HEIGHT = 240;
+const PHOTO_SLOT_RADIUS = 8;
+const PHOTO_STACK_GAP = 12;
+const STRIP_RADIUS = 24;
 
 type FilterOption = "none" | "sepia" | "grayscale" | "warm";
 type BackgroundPatternOption =
@@ -68,52 +74,378 @@ const STICKER_PRESETS = [
   { id: "camera", src: "/stickers/camera.svg", label: "Camera" },
 ] as const;
 
-async function waitForImagesReady(
-  root: HTMLElement,
-  timeoutMs = 5000,
-): Promise<void> {
-  const images = Array.from(root.querySelectorAll("img"));
-  if (images.length === 0) return;
+async function waitForFontsReady(): Promise<void> {
+  if (typeof document !== "undefined" && "fonts" in document) {
+    try {
+      await document.fonts.ready;
+    } catch {
+      // Ignore font loading edge cases and continue with image readiness.
+    }
+  }
+}
 
-  await Promise.all(
-    images.map(
-      async (img) => {
-        await new Promise<void>((resolve) => {
-          if (img.complete && img.naturalWidth > 0) {
-            resolve();
-            return;
-          }
+function getCanvasFilter(filter: FilterOption): string {
+  if (filter === "sepia") return "sepia(1)";
+  if (filter === "grayscale") return "grayscale(1)";
+  if (filter === "warm") return "saturate(1.3) brightness(1.05)";
+  return "none";
+}
 
-          const handleDone = () => {
-            cleanup();
-            resolve();
-          };
+function createRoundedRectPath(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number,
+) {
+  const r = Math.min(radius, width / 2, height / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + width - r, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+  ctx.lineTo(x + width, y + height - r);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+  ctx.lineTo(x + r, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
 
-          const cleanup = () => {
-            img.removeEventListener("load", handleDone);
-            img.removeEventListener("error", handleDone);
-            window.clearTimeout(timer);
-          };
+function fillStripBackground(
+  ctx: CanvasRenderingContext2D,
+  template: PhotoTemplate,
+  width: number,
+  height: number,
+) {
+  ctx.fillStyle = template.bgColor;
+  ctx.fillRect(0, 0, width, height);
 
-          const timer = window.setTimeout(handleDone, timeoutMs);
-          img.addEventListener("load", handleDone);
-          img.addEventListener("error", handleDone);
-        });
+  const patternId = template.bgPattern ?? "solid";
+  if (patternId === "solid") return;
 
-        if (typeof img.decode === "function") {
-          try {
-            await img.decode();
-          } catch {
-            // decode can reject for cached/cross-origin edge cases; load completion is enough fallback
-          }
+  const tile = document.createElement("canvas");
+  const tileCtx = tile.getContext("2d");
+  if (!tileCtx) return;
+
+  if (patternId === "dots") {
+    tile.width = 12;
+    tile.height = 12;
+    tileCtx.fillStyle = "rgba(255,255,255,0.7)";
+    tileCtx.beginPath();
+    tileCtx.arc(2, 2, 1.4, 0, Math.PI * 2);
+    tileCtx.fill();
+  } else if (patternId === "checker") {
+    tile.width = 16;
+    tile.height = 16;
+    tileCtx.fillStyle = "rgba(255,255,255,0.4)";
+    tileCtx.fillRect(0, 0, 8, 8);
+    tileCtx.fillRect(8, 8, 8, 8);
+  } else if (patternId === "diagonal-stripe") {
+    tile.width = 16;
+    tile.height = 16;
+    tileCtx.strokeStyle = "rgba(255,255,255,0.34)";
+    tileCtx.lineWidth = 8;
+    tileCtx.beginPath();
+    tileCtx.moveTo(-4, 16);
+    tileCtx.lineTo(16, -4);
+    tileCtx.stroke();
+  } else if (patternId === "grid") {
+    tile.width = 18;
+    tile.height = 18;
+    tileCtx.strokeStyle = "rgba(255,255,255,0.35)";
+    tileCtx.lineWidth = 1;
+    tileCtx.beginPath();
+    tileCtx.moveTo(0.5, 0);
+    tileCtx.lineTo(0.5, 18);
+    tileCtx.moveTo(0, 0.5);
+    tileCtx.lineTo(18, 0.5);
+    tileCtx.stroke();
+  }
+
+  const pattern = ctx.createPattern(tile, "repeat");
+  if (!pattern) return;
+  ctx.save();
+  ctx.fillStyle = pattern;
+  ctx.fillRect(0, 0, width, height);
+  ctx.restore();
+}
+
+async function loadCanvasImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image();
+    img.decoding = "async";
+    if (!src.startsWith("data:")) {
+      img.crossOrigin = "anonymous";
+    }
+    img.onload = async () => {
+      if (typeof img.decode === "function") {
+        try {
+          await img.decode();
+        } catch {
+          // Some browsers reject decode() for already-decoded images.
         }
-      },
-    ),
-  );
+      }
+      resolve(img);
+    };
+    img.onerror = () => reject(new Error(`Failed to load image: ${src}`));
+    img.src = src;
+  });
+}
 
-  // Wait two paint frames so decoded images are fully drawn before export.
-  await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-  await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+function drawCoverImage(
+  ctx: CanvasRenderingContext2D,
+  image: HTMLImageElement,
+  dx: number,
+  dy: number,
+  dWidth: number,
+  dHeight: number,
+) {
+  const width = image.naturalWidth || image.width;
+  const height = image.naturalHeight || image.height;
+  const sourceRatio = width / height;
+  const targetRatio = dWidth / dHeight;
+
+  let sx = 0;
+  let sy = 0;
+  let sWidth = width;
+  let sHeight = height;
+
+  if (sourceRatio > targetRatio) {
+    sWidth = height * targetRatio;
+    sx = (width - sWidth) / 2;
+  } else if (sourceRatio < targetRatio) {
+    sHeight = width / targetRatio;
+    sy = (height - sHeight) / 2;
+  }
+
+  ctx.drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
+}
+
+function drawCenteredText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  centerX: number,
+  startY: number,
+  letterSpacing: number,
+) {
+  const chars = text.split("");
+  const totalWidth =
+    chars.reduce((sum, char) => sum + ctx.measureText(char).width, 0) +
+    letterSpacing * Math.max(0, chars.length - 1);
+  let cursorX = centerX - totalWidth / 2;
+
+  for (const char of chars) {
+    ctx.fillText(char, cursorX, startY);
+    cursorX += ctx.measureText(char).width + letterSpacing;
+  }
+}
+
+async function renderPhotoStripBlob({
+  template,
+  photos,
+  stickers,
+  filter,
+  footerText,
+}: {
+  template: PhotoTemplate;
+  photos: string[];
+  stickers: StickerPlacement[];
+  filter: FilterOption;
+  footerText: string;
+}): Promise<Blob> {
+  await waitForFontsReady();
+
+  const [photoImages, stickerImages] = await Promise.all([
+    Promise.all(
+      photos.map(async (src) => {
+        try {
+          return await loadCanvasImage(src);
+        } catch {
+          return null;
+        }
+      }),
+    ),
+    Promise.all(
+      stickers.map(async (sticker) => {
+        try {
+          const image = await loadCanvasImage(sticker.src);
+          return { sticker, image };
+        } catch {
+          return null;
+        }
+      }),
+    ),
+  ]);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = STRIP_WIDTH * EXPORT_SCALE;
+  canvas.height = STRIP_HEIGHT * EXPORT_SCALE;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    throw new Error("Failed to initialize export canvas.");
+  }
+
+  ctx.scale(EXPORT_SCALE, EXPORT_SCALE);
+  createRoundedRectPath(ctx, 0, 0, STRIP_WIDTH, STRIP_HEIGHT, STRIP_RADIUS);
+  ctx.clip();
+  fillStripBackground(ctx, template, STRIP_WIDTH, STRIP_HEIGHT);
+
+  const slotX = STRIP_PADDING;
+  const slotStartY = STRIP_PADDING;
+  for (let index = 0; index < template.photoCount; index += 1) {
+    const y = slotStartY + index * (PHOTO_SLOT_HEIGHT + PHOTO_STACK_GAP);
+    createRoundedRectPath(
+      ctx,
+      slotX,
+      y,
+      PHOTO_SLOT_WIDTH,
+      PHOTO_SLOT_HEIGHT,
+      PHOTO_SLOT_RADIUS,
+    );
+    ctx.save();
+    ctx.clip();
+    ctx.fillStyle = "#e0e0e0";
+    ctx.fillRect(slotX, y, PHOTO_SLOT_WIDTH, PHOTO_SLOT_HEIGHT);
+
+    const image = photoImages[index];
+    if (image) {
+      ctx.filter = getCanvasFilter(filter);
+      drawCoverImage(ctx, image, slotX, y, PHOTO_SLOT_WIDTH, PHOTO_SLOT_HEIGHT);
+      ctx.filter = "none";
+    } else {
+      ctx.fillStyle = "#a3a3a3";
+      ctx.font = '500 14px ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(`Slot ${index + 1}`, slotX + PHOTO_SLOT_WIDTH / 2, y + PHOTO_SLOT_HEIGHT / 2);
+    }
+    ctx.restore();
+  }
+
+  ctx.save();
+  ctx.fillStyle = template.fontColor;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "alphabetic";
+  ctx.shadowColor = "rgba(0, 0, 0, 0.35)";
+  ctx.shadowBlur = 2;
+  ctx.shadowOffsetY = 1;
+  ctx.font = '700 16px ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+  drawCenteredText(ctx, footerText.toUpperCase(), STRIP_WIDTH / 2, 1215, 3.2);
+  ctx.font = '600 13px ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+  drawCenteredText(
+    ctx,
+    new Date().toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+    }),
+    STRIP_WIDTH / 2,
+    1245,
+    1.1,
+  );
+  ctx.restore();
+
+  for (const item of stickerImages) {
+    if (!item) continue;
+    const { sticker, image } = item;
+    ctx.save();
+    ctx.translate(sticker.x, sticker.y);
+    ctx.rotate((sticker.rotation * Math.PI) / 180);
+    ctx.drawImage(
+      image,
+      -sticker.size / 2,
+      -sticker.size / 2,
+      sticker.size,
+      sticker.size,
+    );
+    ctx.restore();
+  }
+
+  const blob = await new Promise<Blob | null>((resolve) =>
+    canvas.toBlob(resolve, "image/png"),
+  );
+  if (!blob) {
+    throw new Error("Failed to create export blob.");
+  }
+  return blob;
+}
+
+function openMobileResultPage(
+  targetWindow: Window | null,
+  imageUrl: string,
+  fileName: string,
+) {
+  const resultWindow = targetWindow ?? window.open("", "_blank");
+  if (!resultWindow) {
+    window.open(imageUrl, "_blank");
+    return;
+  }
+
+  const html = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>${fileName}</title>
+    <style>
+      :root { color-scheme: light; }
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        min-height: 100%;
+        background: #f8fafc;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      body {
+        padding: 72px 16px 24px;
+      }
+      .toast {
+        position: fixed;
+        top: 16px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 10px 16px;
+        border-radius: 999px;
+        background: rgba(236, 72, 153, 0.92);
+        color: #fff;
+        box-shadow: 0 8px 24px rgba(236, 72, 153, 0.22);
+        font-size: 14px;
+        line-height: 1.2;
+        white-space: nowrap;
+        z-index: 10;
+        max-width: calc(100vw - 24px);
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .wrap {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+      }
+      .strip {
+        display: block;
+        width: min(92vw, 420px);
+        max-width: 100%;
+        height: auto;
+        border-radius: 24px;
+        box-shadow: 0 18px 50px rgba(15, 23, 42, 0.16);
+        -webkit-user-drag: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="toast">Long press the photo strip to save to your device.</div>
+    <main class="wrap">
+      <img class="strip" src="${imageUrl}" alt="Photo Strip" draggable="false" />
+    </main>
+  </body>
+</html>`;
+
+  resultWindow.document.open();
+  resultWindow.document.write(html);
+  resultWindow.document.close();
 }
 
 function CustomizeContent() {
@@ -147,7 +479,6 @@ function CustomizeContent() {
   >("background");
 
   const previewRef = useRef<HTMLDivElement | null>(null);
-  const exportRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     setBgColor(baseTemplate.bgColor);
@@ -209,61 +540,32 @@ function CustomizeContent() {
   };
 
   const handleDownload = async () => {
-    if (!exportRef.current) return;
+    const isMobile = /iPhone|iPad|iPod|Android|Mobile/i.test(
+      navigator.userAgent,
+    );
+    const mobileResultWindow = isMobile ? window.open("", "_blank") : null;
     setIsExporting(true);
-    const loadingToastId = toast.loading("Your photo strip is ready...", {
+    const loadingToastId = toast.loading("Preparing your photo strip...", {
       icon: <span className="inline-block animate-pulse">⏳</span>,
     });
     try {
-      await waitForImagesReady(exportRef.current);
-
-      const blob = await htmlToImage.toBlob(exportRef.current, {
-        cacheBust: true,
-        width: 400,
-        height: 1300,
+      const blob = await renderPhotoStripBlob({
+        template: effectiveTemplate,
+        photos,
+        stickers,
+        filter,
+        footerText,
       });
       if (!blob) {
         throw new Error("Failed to generate image blob.");
       }
 
       const fileName = `photobooth-${effectiveTemplate.id}-${Date.now()}.png`;
-      const file = new File([blob], fileName, { type: "image/png" });
-      const isMobile = /iPhone|iPad|iPod|Android|Mobile/i.test(
-        navigator.userAgent,
-      );
-      const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-
       const objectUrl = URL.createObjectURL(blob);
-
-      // On iOS Safari, opening the image is the most reliable way to allow
-      // "Save to Photos" via long-press.
-      if (isIOS) {
-        toast.dismiss(loadingToastId);
-        window.open(objectUrl, "_blank", "noopener,noreferrer");
-        setTimeout(() => URL.revokeObjectURL(objectUrl), 30_000);
-        return;
-      }
-
-      // Preferred mobile path: invoke native share sheet so users can save to Photos.
-      if (
-        typeof navigator !== "undefined" &&
-        typeof navigator.share === "function" &&
-        typeof navigator.canShare === "function" &&
-        navigator.canShare({ files: [file] })
-      ) {
-        toast.dismiss(loadingToastId);
-        await navigator.share({
-          title: "Photo Strip",
-          files: [file],
-        });
-        URL.revokeObjectURL(objectUrl);
-        return;
-      }
 
       if (isMobile) {
         toast.dismiss(loadingToastId);
-        window.open(objectUrl, "_blank", "noopener,noreferrer");
-        setTimeout(() => URL.revokeObjectURL(objectUrl), 30_000);
+        openMobileResultPage(mobileResultWindow, objectUrl, fileName);
         return;
       }
 
@@ -277,6 +579,9 @@ function CustomizeContent() {
       URL.revokeObjectURL(objectUrl);
     } catch (err) {
       toast.dismiss(loadingToastId);
+      if (mobileResultWindow && !mobileResultWindow.closed) {
+        mobileResultWindow.close();
+      }
       if (err instanceof DOMException && err.name === "AbortError") {
         return;
       }
@@ -855,19 +1160,6 @@ function CustomizeContent() {
         </div>
       </div>
 
-      {/* Hidden full-scale strip for export (off-screen so html-to-image captures full res) */}
-      <div
-        className="pointer-events-none opacity-0"
-        style={{ position: "absolute", left: -9999, top: 0 }}
-      >
-        <PhotoStripPreview
-          ref={exportRef}
-          template={effectiveTemplate}
-          photos={photos}
-          stickers={stickers}
-          scale={1}
-        />
-      </div>
     </div>
   );
 }
