@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { templates, type PhotoTemplate } from "@/lib/templates";
 import { PhotoStripPreview } from "@/components/PhotoStripPreview";
 import { cn } from "@/lib/utils";
+import { trackTemplateClick } from "@/lib/analytics";
 
 const STORAGE_KEY = "selectedTemplateId";
 const DEMO_PHOTOS: Record<string, string[]> = {
@@ -25,7 +26,7 @@ const DEMO_PHOTOS: Record<string, string[]> = {
     "/demo/bw/1.png",
     "/demo/bw/2.png",
     "/demo/bw/3.png",
-    "/demo/bw/4.JPG",
+    "/demo/bw/4.jpeg",
   ],
   "romantic-color": [
     "/demo/color/1.png",
@@ -170,14 +171,17 @@ export function HomeTemplateGrid() {
             className="flex snap-x snap-mandatory gap-3 overflow-x-auto px-[7%] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
             aria-label="Template preview carousel"
           >
-            {orderedTemplates.map(({ template }) => (
+            {orderedTemplates.map(({ template }, index) => (
               <div
                 key={template.id}
                 className="w-[86%] shrink-0 snap-center rounded-[1.75rem] border border-neutral-200 bg-white/90 p-3 shadow-[0_16px_42px_rgba(15,23,42,0.12)] transition-transform duration-300"
               >
                 <Link
                   href={`/capture?templateId=${template.id}`}
-                  onClick={() => handleSelect(template)}
+                  onClick={() => {
+                    handleSelect(template);
+                    trackTemplateClick(template.name);
+                  }}
                   className="block rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-300"
                 >
                   <div className="flex h-[470px] items-start justify-center overflow-hidden rounded-2xl bg-gradient-to-b from-neutral-100/70 to-white/80">
@@ -186,6 +190,7 @@ export function HomeTemplateGrid() {
                       photos={DEMO_PHOTOS[template.id] ?? []}
                       scale={0.34}
                       className="pointer-events-none drop-shadow-[0_16px_24px_rgba(15,23,42,0.2)]"
+                      priority={index === 0}
                     />
                   </div>
                   <div className="px-1 pb-1 pt-3 text-center">
@@ -234,12 +239,15 @@ export function HomeTemplateGrid() {
       </div>
 
       <div className="hidden place-items-stretch grid-cols-1 gap-4 sm:grid-cols-2 md:grid md:grid-cols-4 md:gap-6">
-        {templates.map((template) => {
+        {templates.map((template, index) => {
           return (
             <Link
               key={template.id}
               href={`/capture?templateId=${template.id}`}
-              onClick={() => handleSelect(template)}
+              onClick={() => {
+                handleSelect(template);
+                trackTemplateClick(template.name);
+              }}
               className="group block h-full cursor-pointer rounded-3xl transition-transform duration-200 hover:-translate-y-1 hover:scale-[1.02]"
             >
               <div className="flex h-full flex-col overflow-hidden rounded-3xl border border-neutral-200 bg-white/80 shadow-[0_10px_30px_rgba(15,23,42,0.12)] transition-all duration-200 group-hover:border-pink-300 group-hover:shadow-[0_18px_45px_rgba(244,114,182,0.28)]">
@@ -249,6 +257,7 @@ export function HomeTemplateGrid() {
                     photos={DEMO_PHOTOS[template.id] ?? []}
                     scale={0.32}
                     className="pointer-events-none"
+                    priority={index === 0}
                   />
                 </div>
                 <div className="px-3 pb-4 pt-3 text-center">

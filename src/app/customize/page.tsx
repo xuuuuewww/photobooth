@@ -2,7 +2,8 @@
 
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ChevronDown } from "lucide-react";
+import Image from "next/image";
+import { ChevronDown, Share2, Instagram, Facebook, Twitter, Link2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,6 +12,18 @@ import {
 } from "@/components/PhotoStripPreview";
 import { templates, type PhotoTemplate } from "@/lib/templates";
 import { cn } from "@/lib/utils";
+import {
+  trackBgColor,
+  trackBgPattern,
+  trackFilter,
+  trackSticker,
+  trackFooterText,
+  trackDownload,
+  trackCustomizeRetake,
+  trackStartOver,
+  trackLongPressSave,
+  trackShare,
+} from "@/lib/analytics";
 
 const STORAGE_KEY = "capturedPhotos";
 const STRIP_WIDTH = 400;
@@ -438,8 +451,31 @@ function openMobileResultPage(
   <body>
     <div class="toast">Long press the photo strip to save to your device.</div>
     <main class="wrap">
-      <img class="strip" src="${imageUrl}" alt="Photo Strip" draggable="false" />
+      <img id="strip-img" class="strip" src="${imageUrl}" alt="Photo Strip" draggable="false" />
     </main>
+    <script>
+      (function() {
+        var img = document.getElementById('strip-img');
+        var timer = null;
+        function clearTimer() {
+          if (timer) {
+            clearTimeout(timer);
+            timer = null;
+          }
+        }
+        img.addEventListener('touchstart', function() {
+          clearTimer();
+          timer = setTimeout(function() {
+            timer = null;
+            if (window.opener) {
+              window.opener.postMessage({ type: 'PHOTOBOTH_LONG_PRESS_SAVE' }, '*');
+            }
+          }, 600);
+        }, { passive: true });
+        img.addEventListener('touchend', clearTimer, { passive: true });
+        img.addEventListener('touchmove', clearTimer, { passive: true });
+      })();
+    </script>
   </body>
 </html>`;
 
@@ -479,6 +515,36 @@ function CustomizeContent() {
   >("background");
 
   const previewRef = useRef<HTMLDivElement | null>(null);
+  const shareRef = useRef<HTMLDivElement | null>(null);
+  const [isShareOpen, setIsShareOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!isShareOpen) return;
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      const target = event.target as Node | null;
+      if (!shareRef.current || !target) return;
+      if (!shareRef.current.contains(target)) {
+        setIsShareOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, [isShareOpen]);
+
+  useEffect(() => {
+    const handler = (event: MessageEvent) => {
+      if (event.data?.type === "PHOTOBOTH_LONG_PRESS_SAVE") {
+        trackLongPressSave();
+      }
+    };
+    window.addEventListener("message", handler);
+    return () => window.removeEventListener("message", handler);
+  }, []);
 
   useEffect(() => {
     setBgColor(baseTemplate.bgColor);
@@ -540,6 +606,7 @@ function CustomizeContent() {
   };
 
   const handleDownload = async () => {
+    trackDownload();
     const isMobile = /iPhone|iPad|iPod|Android|Mobile/i.test(
       navigator.userAgent,
     );
@@ -593,10 +660,12 @@ function CustomizeContent() {
   };
 
   const handleRetake = () => {
+    trackCustomizeRetake();
     router.push(`/capture?templateId=${baseTemplate.id}`);
   };
 
   const handleStartOver = () => {
+    trackStartOver();
     router.push("/");
   };
 
@@ -635,6 +704,115 @@ function CustomizeContent() {
     setStickers([]);
   };
 
+  const handleShareClick = async () => {
+    const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
+    const isMobile = /iPhone|iPad|iPod|Android|Mobile/i.test(ua);
+
+    if (
+      isMobile &&
+      typeof navigator !== "undefined" &&
+      "share" in navigator
+    ) {
+      try {
+        await (
+          navigator as Navigator & {
+            share?: (data: ShareData) => Promise<void>;
+          }
+        ).share?.({
+          title: "My Photo Strip",
+          text: "Just made this free photo strip!",
+          url: window.location.href,
+        });
+        trackShare("navigator_share");
+        return;
+      } catch {
+        // user cancelled or share not completed; fall through to popover
+      }
+    }
+
+    setIsShareOpen(true);
+  };
+
+  const handleShareFacebook = () => {
+    trackShare("facebook");
+    const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+      window.location.href,
+    )}`;
+    window.open(url, "_blank");
+    setIsShareOpen(false);
+  };
+
+  const handleShareTwitter = () => {
+    trackShare("twitter");
+    const text =
+      "I just made this photo strip online for free at Photobooth Online. Create yours: https://www.photobooth-online.com/";
+    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+      text,
+    )}`;
+    window.open(url, "_blank");
+    setIsShareOpen(false);
+  };
+
+  const handleShareInstagram = () => {
+    trackShare("instagram");
+    toast.info("Please download the photo strip before posting to Instagram", {
+      className:
+        "bg-pink-500 text-white border border-pink-400 shadow-[0_10px_30px_rgba(244,114,182,0.45)]",
+      style: {
+        backgroundColor: "#ec4899",
+        color: "#ffffff",
+        borderColor: "#fb7185",
+      },
+    });
+    setIsShareOpen(false);
+  };
+
+  const handleSharePinterest = async () => {
+    trackShare("pinterest");
+    const loadingId = toast.loading("Preparing image for Pinterest...");
+    try {
+      const blob = await renderPhotoStripBlob({
+        template: effectiveTemplate,
+        photos,
+        stickers,
+        filter,
+        footerText,
+      });
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result;
+        const dataUrl = typeof result === "string" ? result : "";
+        toast.dismiss(loadingId);
+        const pinterestUrl = `https://pinterest.com/pin/create/button/?url=${encodeURIComponent(
+          window.location.href,
+        )}&media=${encodeURIComponent(
+          dataUrl,
+        )}&description=${encodeURIComponent(
+          "My photo strip from Photobooth Online",
+        )}`;
+        window.open(pinterestUrl, "_blank");
+      };
+      reader.readAsDataURL(blob);
+    } catch (err) {
+      toast.dismiss(loadingId);
+      console.error("Failed to prepare image for Pinterest", err);
+      alert("Failed to prepare image for Pinterest. Please try again.");
+    } finally {
+      setIsShareOpen(false);
+    }
+  };
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      trackShare("copy_link");
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      alert("Failed to copy link. Please copy it manually.");
+    }
+  };
+
   return (
     <div className="min-h-[calc(100vh-46px)] bg-neutral-50 px-3 py-2 md:min-h-[calc(100vh-4rem)] md:px-8 md:py-6">
       <div className="mx-auto w-full max-w-6xl">
@@ -669,6 +847,14 @@ function CustomizeContent() {
                   >
                     {isExporting ? "Generating..." : "Download"}
                   </Button>
+                  <button
+                    type="button"
+                    onClick={handleShareClick}
+                    className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-full border border-pink-300 bg-white px-3 text-xs font-semibold text-pink-600 transition hover:bg-pink-50"
+                  >
+                    <Share2 className="h-4 w-4" />
+                    <span>Share to Friends</span>
+                  </button>
                   <button
                     type="button"
                     onClick={handleRetake}
@@ -725,7 +911,10 @@ function CustomizeContent() {
                             <button
                               key={color}
                               type="button"
-                              onClick={() => setBgColor(color)}
+                              onClick={() => {
+                                trackBgColor();
+                                setBgColor(color);
+                              }}
                               className={cn(
                                 "h-8 w-8 shrink-0 rounded-full border border-neutral-200",
                                 bgColor === color &&
@@ -746,7 +935,10 @@ function CustomizeContent() {
                             <button
                               key={pattern.id}
                               type="button"
-                              onClick={() => setBgPattern(pattern.id)}
+                              onClick={() => {
+                                trackBgPattern();
+                                setBgPattern(pattern.id);
+                              }}
                               className={cn(
                                 "rounded-full border px-3 py-1.5 text-[11px] transition",
                                 bgPattern === pattern.id
@@ -800,7 +992,10 @@ function CustomizeContent() {
                           <button
                             key={opt.id}
                             type="button"
-                            onClick={() => setFilter(opt.id)}
+                            onClick={() => {
+                              trackFilter();
+                              setFilter(opt.id);
+                            }}
                             className={cn(
                               "rounded-full border px-3 py-1.5 text-[11px] transition",
                               filter === opt.id
@@ -851,9 +1046,10 @@ function CustomizeContent() {
                             <button
                               key={sticker.id}
                               type="button"
-                              onClick={() =>
-                                setSelectedStickerSrc(isActive ? null : sticker.src)
-                              }
+                              onClick={() => {
+                                trackSticker();
+                                setSelectedStickerSrc(isActive ? null : sticker.src);
+                              }}
                               className={cn(
                                 "rounded-md border bg-white p-1.5 transition",
                                 isActive
@@ -862,10 +1058,11 @@ function CustomizeContent() {
                               )}
                               aria-label={`Select ${sticker.label} sticker`}
                             >
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
+                              <Image
                                 src={sticker.src}
-                                alt=""
+                                alt={`${sticker.label} sticker photobooth online`}
+                                width={24}
+                                height={24}
                                 className="mx-auto h-6 w-6"
                                 draggable={false}
                               />
@@ -924,6 +1121,7 @@ function CustomizeContent() {
                         type="text"
                         value={footerText}
                         onChange={(e) => setFooterText(e.target.value)}
+                        onBlur={trackFooterText}
                         className="w-full rounded-full border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-800 outline-none ring-0 focus:border-pink-300 focus:ring-2 focus:ring-pink-200"
                       />
                     </div>
@@ -988,7 +1186,10 @@ function CustomizeContent() {
                     <button
                       key={color}
                       type="button"
-                      onClick={() => setBgColor(color)}
+                      onClick={() => {
+                        trackBgColor();
+                        setBgColor(color);
+                      }}
                       className={cn(
                         "h-7 w-7 rounded-full border border-neutral-200",
                         "transition-shadow",
@@ -1012,7 +1213,10 @@ function CustomizeContent() {
                     <button
                       key={pattern.id}
                       type="button"
-                      onClick={() => setBgPattern(pattern.id)}
+                      onClick={() => {
+                        trackBgPattern();
+                        setBgPattern(pattern.id);
+                      }}
                       className={cn(
                         "rounded-full border px-2 py-1 text-[10px] leading-none transition md:text-[11px]",
                         bgPattern === pattern.id
@@ -1043,7 +1247,10 @@ function CustomizeContent() {
                     <button
                       key={opt.id}
                       type="button"
-                      onClick={() => setFilter(opt.id)}
+                      onClick={() => {
+                        trackFilter();
+                        setFilter(opt.id);
+                      }}
                       className={cn(
                         "rounded-full border px-3 py-1.5 text-[11px] transition",
                         filter === opt.id
@@ -1072,9 +1279,10 @@ function CustomizeContent() {
                       <button
                         key={sticker.id}
                         type="button"
-                        onClick={() =>
-                          setSelectedStickerSrc(isActive ? null : sticker.src)
-                        }
+                        onClick={() => {
+                          trackSticker();
+                          setSelectedStickerSrc(isActive ? null : sticker.src);
+                        }}
                         className={cn(
                           "rounded-md border bg-white p-1 transition",
                           isActive
@@ -1083,10 +1291,11 @@ function CustomizeContent() {
                         )}
                         aria-label={`Select ${sticker.label} sticker`}
                       >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
+                        <Image
                           src={sticker.src}
-                          alt=""
+                          alt={`${sticker.label} sticker photobooth online`}
+                          width={24}
+                          height={24}
                           className="mx-auto h-5 w-5 md:h-6 md:w-6"
                           draggable={false}
                         />
@@ -1123,19 +1332,92 @@ function CustomizeContent() {
                   type="text"
                   value={footerText}
                   onChange={(e) => setFooterText(e.target.value)}
+                  onBlur={trackFooterText}
                   className="w-full rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-xs text-neutral-800 outline-none ring-0 focus:border-pink-300 focus:ring-2 focus:ring-pink-200"
                 />
               </div>
 
-              {/* Download button */}
+              {/* Download / Share buttons */}
               <div className="pt-4">
-                <Button
-                  className="w-full rounded-full bg-pink-500 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_16px_50px_rgba(244,114,182,0.35)] hover:bg-pink-400"
-                  onClick={handleDownload}
-                  disabled={isExporting || photos.length === 0}
-                >
-                  {isExporting ? "Generating..." : "Download Photo Strip"}
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    className="h-11 w-2/3 rounded-full bg-pink-500 px-4 text-sm font-semibold text-white shadow-[0_16px_50px_rgba(244,114,182,0.35)] hover:bg-pink-400"
+                    onClick={handleDownload}
+                    disabled={isExporting || photos.length === 0}
+                  >
+                    {isExporting ? "Generating..." : "Download Photo Strip"}
+                  </Button>
+                  <div ref={shareRef} className="relative w-1/3">
+                    <button
+                      type="button"
+                      onClick={handleShareClick}
+                      onMouseEnter={() => setIsShareOpen(true)}
+                      className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-full border border-pink-300 bg-white px-3 text-xs font-semibold text-pink-600 shadow-sm transition hover:bg-pink-50"
+                    >
+                      <Share2 className="h-4 w-4" />
+                      <span>Share to Friends</span>
+                    </button>
+                    {isShareOpen && (
+                      <div className="absolute bottom-full right-0 z-30 mb-2 w-80 rounded-2xl border border-neutral-200 bg-white p-3 text-xs text-neutral-800 shadow-[0_18px_50px_rgba(15,23,42,0.18)]">
+                        <p className="mb-2 text-[11px] font-semibold text-neutral-800">
+                          Share your photo strip!
+                        </p>
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <button
+                            type="button"
+                            onClick={handleShareInstagram}
+                            className="flex flex-col items-center gap-1 text-[11px] text-neutral-700"
+                          >
+                            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#E4405F] text-white">
+                              <Instagram className="h-4 w-4" />
+                            </span>
+                            <span>Instagram</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleShareFacebook}
+                            className="flex flex-col items-center gap-1 text-[11px] text-neutral-700"
+                          >
+                            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1877F2] text-white">
+                              <Facebook className="h-4 w-4" />
+                            </span>
+                            <span>Facebook</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleShareTwitter}
+                            className="flex flex-col items-center gap-1 text-[11px] text-neutral-700"
+                          >
+                            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1DA1F2] text-white">
+                              <Twitter className="h-4 w-4" />
+                            </span>
+                            <span>Twitter/X</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleSharePinterest}
+                            className="flex flex-col items-center gap-1 text-[11px] text-neutral-700"
+                          >
+                            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#E60023] text-white text-base font-semibold leading-none">
+                              Ⓟ
+                            </span>
+                            <span>Pinterest</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleCopyLink}
+                            className="flex flex-col items-center gap-1 text-[11px] text-neutral-700"
+                          >
+                            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-900 text-white">
+                              <Link2 className="h-4 w-4" />
+                            </span>
+                            <span>{copied ? "Copied!" : "Copy link"}</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
 
               {/* Bottom secondary actions */}

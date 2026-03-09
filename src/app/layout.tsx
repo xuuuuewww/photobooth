@@ -1,3 +1,4 @@
+import Script from 'next/script'
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -8,13 +9,21 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { MobileNavMenu } from "@/components/MobileNavMenu";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://photobooth-online.com"),
   title: "Photobooth Online Free – Create Photo Booth Strips Instantly without Sign Up",
   description:
     "Create beautiful photo booth strips online for free. No sign up, no downloads. Choose a template, take selfies, and generate stunning photo strips instantly in your browser.",
+  manifest: "/manifest.webmanifest",
   icons: {
-    icon: "/favicon-v2.png",
-    shortcut: "/favicon-v2.png",
-    apple: "/favicon-v2.png",
+    icon: [
+      {
+        url: "/favicon-v2.png",
+        type: "image/png",
+        sizes: "96x96",
+      },
+    ],
+    shortcut: [{ url: "/favicon-v2.png", type: "image/png", sizes: "96x96" }],
+    apple: [{ url: "/favicon-v2.png", type: "image/png", sizes: "96x96" }],
   },
 };
 
@@ -29,6 +38,18 @@ export default function RootLayout({
         <ThemeProvider>
           <div className="flex min-h-screen flex-col">
             <header className="fixed top-0 left-0 right-0 z-50 border-b border-pink-100/80 bg-white/80 text-xs text-foreground backdrop-blur-md">
+            <Script
+  src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"
+  strategy="afterInteractive"
+/>
+<Script id="google-analytics" strategy="afterInteractive">
+  {`
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-0BXDGTHN02');
+  `}
+</Script>
               <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-1.5 md:px-10 md:py-3">
                 <Link
                   href="/"

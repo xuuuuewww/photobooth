@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Camera } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -92,21 +93,24 @@ export function PhotoStripTemplate({
           <div key={idx} className="flex flex-col gap-3">
             <div
               className={cn(
-                "aspect-[4/3] w-full",
+                "aspect-[4/3] w-full relative",
                 "flex items-center justify-center",
                 styles.photoWrap,
                 !src && styles.placeholder,
               )}
             >
               {src ? (
-                <img
+                <Image
                   src={src}
-                  alt={`Photo ${idx + 1}`}
+                  alt={`Photo ${idx + 1} photobooth online`}
+                  fill
                   className={cn(
                     "h-full w-full object-cover",
                     "filter",
                     styles.photoImg,
                   )}
+                  sizes="(max-width: 768px) 100vw, 340px"
+                  unoptimized
                 />
               ) : (
                 <div className="flex flex-col items-center justify-center gap-2">

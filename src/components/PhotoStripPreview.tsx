@@ -22,13 +22,21 @@ type PhotoStripPreviewProps = {
   scale?: number;
   className?: string;
   onClick?: (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
+  /** When true, the 4 slot images use priority loading (e.g. for first template card LCP). */
+  priority?: boolean;
 };
-
+// 新增：为你首页的 4 张演示图专门写的 SEO 描述
+const DEMO_ALT_TEXTS =[
+  "photo booth online vintage", // 第1张图的描述
+  "wedding photo booth",         // 第2张图的描述
+  "black and white glam photo booth",                // 第3张图的描述
+  "360 photo booth"             // 第4张图的描述
+];
 export const PhotoStripPreview = React.forwardRef<
   HTMLDivElement,
   PhotoStripPreviewProps
 >(function PhotoStripPreview(
-  { template, photos = [], stickers = [], scale = 1, className, onClick },
+  { template, photos = [], stickers = [], scale = 1, className, onClick, priority = false },
   ref
 ) {
   const slots = Array.from(
@@ -117,13 +125,15 @@ export const PhotoStripPreview = React.forwardRef<
               }}
             >
               {src ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <Image
                   src={src}
-                  alt={`Photo ${index + 1}`}
-                  decoding="async"
+                  alt={DEMO_ALT_TEXTS[index] || `Photobooth sample image ${index + 1}`}
+                  width={340}
+                  height={240}
                   className="h-full w-full object-cover"
                   style={filterStyle}
+                  priority={priority}
+                  unoptimized
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center text-xs text-neutral-400">

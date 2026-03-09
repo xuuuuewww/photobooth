@@ -1,11 +1,13 @@
 "use client";
 
+import Image from "next/image";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Camera, RotateCcw, ShieldAlert } from "lucide-react";
 import { templates } from "@/lib/templates";
 import type { PhotoTemplate } from "@/lib/templates";
 import { cn } from "@/lib/utils";
+import { trackCaptureStart, trackCaptureContinue, trackCaptureRetake } from "@/lib/analytics";
 
 const STORAGE_KEY = "capturedPhotos";
 
@@ -225,11 +227,13 @@ function CaptureContent() {
   };
 
   const handleContinue = () => {
+    trackCaptureContinue();
     if (!template) return;
     router.push(`/customize?templateId=${template.id}`);
   };
 
   const handleRetake = () => {
+    trackCaptureRetake();
     setCountdown(null);
     setIsShooting(false);
     setPhotos([]);
@@ -273,12 +277,15 @@ function CaptureContent() {
             />
 
             {topPreviewPhoto && countdown === null && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={topPreviewPhoto}
-                alt="Selected capture preview"
-                className="absolute inset-0 h-full w-full object-cover"
-              />
+              <div className="absolute inset-0">
+                <Image
+                  src={topPreviewPhoto}
+                  alt="Selected capture preview photobooth online"
+                  fill
+                  className="h-full w-full object-cover"
+                  unoptimized
+                />
+              </div>
             )}
 
             {flash && (
@@ -329,14 +336,15 @@ function CaptureContent() {
               return (
                 <div
                   key={idx}
-                  className="mx-auto aspect-[4/3] h-24 overflow-hidden rounded-2xl bg-neutral-100 md:h-28"
+                  className="relative mx-auto aspect-[4/3] h-24 overflow-hidden rounded-2xl bg-neutral-100 md:h-28"
                 >
                   {src ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
+                    <Image
                       src={src}
-                      alt={`Captured ${idx + 1}`}
+                      alt={`Captured ${idx + 1} photobooth online`}
+                      fill
                       className="h-full w-full object-cover"
+                      unoptimized
                     />
                   ) : (
                     <div className="flex h-full items-center justify-center text-xs text-neutral-400">
@@ -370,7 +378,10 @@ function CaptureContent() {
             ) : (
               <button
                 type="button"
-                onClick={runShootSequence}
+                onClick={() => {
+                  trackCaptureStart();
+                  runShootSequence();
+                }}
                 disabled={Boolean(error) || !stream || isShooting}
                 className={cn(
                   "inline-flex w-full items-center justify-center rounded-full px-4 py-2.5 text-sm font-semibold text-white transition",
@@ -401,12 +412,15 @@ function CaptureContent() {
             />
 
             {topPreviewPhoto && countdown === null && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={topPreviewPhoto}
-                alt="Selected capture preview"
-                className="absolute inset-0 h-full w-full object-cover"
-              />
+              <div className="absolute inset-0">
+                <Image
+                  src={topPreviewPhoto}
+                  alt="Selected capture preview photobooth online"
+                  fill
+                  className="h-full w-full object-cover"
+                  unoptimized
+                />
+              </div>
             )}
 
             {flash && (
@@ -458,17 +472,18 @@ function CaptureContent() {
                     type="button"
                     onClick={() => setActiveThumbIndex(idx)}
                     className={cn(
-                      "aspect-[4/3] overflow-hidden rounded-xl border bg-neutral-100 text-left transition",
+                      "relative aspect-[4/3] overflow-hidden rounded-xl border bg-neutral-100 text-left transition",
                       isActive ? "border-pink-300 ring-2 ring-pink-200/70" : "border-neutral-200",
                     )}
                     aria-label={`Thumbnail ${idx + 1}`}
                   >
                     {src ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <Image
                         src={src}
-                        alt={`Captured ${idx + 1}`}
+                        alt={`Captured ${idx + 1} photobooth online`}
+                        fill
                         className="h-full w-full object-cover"
+                        unoptimized
                       />
                     ) : (
                       <div className="flex h-full items-center justify-center text-xs font-medium text-neutral-400">
@@ -502,7 +517,10 @@ function CaptureContent() {
             ) : (
               <button
                 type="button"
-                onClick={runShootSequence}
+                onClick={() => {
+                  trackCaptureStart();
+                  runShootSequence();
+                }}
                 disabled={Boolean(error) || !stream || isShooting}
                 className={cn(
                   "inline-flex h-11 w-full items-center justify-center rounded-full px-4 text-sm font-semibold text-white transition",
