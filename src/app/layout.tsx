@@ -14,6 +14,22 @@ export const metadata: Metadata = {
   description:
     "Create beautiful photo booth strips online for free. No sign up, no downloads. Choose a template, take selfies, and generate stunning photo strips instantly in your browser.",
   manifest: "/manifest.webmanifest",
+  openGraph: {
+    title: "Photobooth Online & Free",
+    description:
+      "Create beautiful photo booth strips in seconds right from your browser. No downloads, no sign up, just instant memories made online for free.",
+    url: "https://www.photobooth-online.com",
+    siteName: "Photobooth Online",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Photobooth Online",
+      },
+    ],
+    type: "website",
+  },
   icons: {
     icon: [
       {
@@ -34,22 +50,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <meta property="og:title" content="Photobooth Online & Free" />
-        <meta
-          property="og:description"
-          content="Create beautiful photo booth strips in seconds right from your browser. No downloads, no sign up, just instant memories made online for free."
-        />
-        <meta
-          property="og:image"
-          content="https://www.photobooth-online.com/og-image.png"
-        />
-        <meta
-          property="og:url"
-          content="https://www.photobooth-online.com"
-        />
-        <meta property="og:type" content="website" />
-      </head>
+      <head />
       <body className="min-h-screen bg-[radial-gradient(circle_at_top,_#ffe2f2,_#fff5f9_55%,_#ffe4ef_100%)] text-foreground antialiased">
         <ThemeProvider>
           <div className="flex min-h-screen flex-col">
