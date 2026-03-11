@@ -30,6 +30,13 @@ export const metadata: Metadata = {
     ],
     type: "website",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "Photobooth Online & Free",
+    description:
+      "Create beautiful photo booth strips in seconds. No downloads, no sign up, free forever.",
+    images: ["https://www.photobooth-online.com/og-image.png"],
+  },
   icons: {
     icon: [
       {
