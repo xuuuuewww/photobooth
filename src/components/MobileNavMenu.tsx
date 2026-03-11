@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { href: "/", label: "Home" },
   { href: "/capture", label: "Capture" },
   { href: "/customize", label: "Customize" },
+  { href: "/blog", label: "Blog" },
 ] as const;
 
 export function MobileNavMenu() {
@@ -33,7 +34,7 @@ export function MobileNavMenu() {
       </button>
 
       {open ? (
-        <div className="absolute right-0 top-10 z-50 w-36 overflow-hidden rounded-2xl border border-pink-100 bg-white/95 shadow-[0_14px_32px_rgba(15,23,42,0.18)] backdrop-blur">
+        <div className="absolute right-0 top-10 z-50 w-40 overflow-hidden rounded-2xl border border-pink-100 bg-white/95 shadow-[0_14px_32px_rgba(15,23,42,0.18)] backdrop-blur">
           <nav className="flex flex-col p-1.5 text-sm font-semibold text-pink-600">
             {NAV_ITEMS.map((item) => {
               const isActive =

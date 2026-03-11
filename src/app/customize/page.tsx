@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
-import { ChevronDown, Share2, Instagram, Facebook, Twitter, Link2, Loader2 } from "lucide-react";
+import { ChevronDown, Share2, Instagram, Facebook, Twitter, Link2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -520,7 +520,6 @@ function CustomizeContent() {
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isCopying, setIsCopying] = useState(false);
-  const [isTwitterSharing, setIsTwitterSharing] = useState(false);
 
   useEffect(() => {
     if (!isShareOpen) return;
@@ -746,39 +745,14 @@ function CustomizeContent() {
   };
 
   const handleShareTwitter = () => {
-    // 第一步：同步立即开窗，必须在任何 await 之前
-    const win = window.open("", "_blank", "noopener,noreferrer");
-    if (!win) {
-      toast.error("Please allow popups for this site");
-      return;
-    }
     trackShare("twitter");
+    const text =
+      "I just made this photo strip online for free at Photobooth Online. Create yours: https://www.photobooth-online.com/";
+    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+      text,
+    )}`;
+    window.open(url, "_blank");
     setIsShareOpen(false);
-    setIsTwitterSharing(true);
-    // 第二步：异步上传图片并导航到 Twitter
-    (async () => {
-      try {
-        const blob = await renderPhotoStripBlob({
-          template: effectiveTemplate,
-          photos,
-          stickers,
-          filter,
-          footerText,
-        });
-        if (!blob) throw new Error("Failed to generate image.");
-        const imageUrl = await uploadPhotoStrip(blob);
-        const shareUrl = `${window.location.origin}/share?img=${encodeURIComponent(imageUrl)}`;
-        const tweetText = `Just made this photo strip for free at photobooth-online.com! 📸 ${imageUrl}`;
-        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(shareUrl)}`;
-        win.location.href = twitterUrl;
-      } catch (err) {
-        console.error("Twitter share failed", err);
-        win.close();
-        toast.error("Failed to share. Please try again.");
-      } finally {
-        setIsTwitterSharing(false);
-      }
-    })();
   };
 
   const handleShareInstagram = () => {
@@ -1444,17 +1418,12 @@ function CustomizeContent() {
                           <button
                             type="button"
                             onClick={handleShareTwitter}
-                            disabled={isTwitterSharing || photos.length === 0}
-                            className="flex flex-col items-center gap-1 text-[11px] text-neutral-700 disabled:cursor-not-allowed disabled:opacity-60"
+                            className="flex flex-col items-center gap-1 text-[11px] text-neutral-700"
                           >
                             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1DA1F2] text-white">
-                              {isTwitterSharing ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <Twitter className="h-4 w-4" />
-                              )}
+                              <Twitter className="h-4 w-4" />
                             </span>
-                            <span>{isTwitterSharing ? "Sharing..." : "Twitter/X"}</span>
+                            <span>Twitter/X</span>
                           </button>
                           <button
                             type="button"

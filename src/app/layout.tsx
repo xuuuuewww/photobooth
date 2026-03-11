@@ -91,7 +91,7 @@ export default function RootLayout({
                     PHOTOBOOTH.online
                   </span>
                 </Link>
-                <nav className="hidden items-center gap-8 text-[14px] font-semibold text-pink-500/90 md:flex">
+                <nav className="hidden items-center gap-6 text-[14px] font-semibold text-pink-500/90 md:flex">
                   <Link href="/" className="transition hover:text-pink-700">
                     Home
                   </Link>
@@ -100,6 +100,9 @@ export default function RootLayout({
                   </Link>
                   <Link href="/customize" className="transition hover:text-pink-700">
                     Customize
+                  </Link>
+                  <Link href="/blog" className="transition hover:text-pink-700">
+                    Blog
                   </Link>
                 </nav>
                 <MobileNavMenu />
