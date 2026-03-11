@@ -24,6 +24,7 @@ import {
   trackLongPressSave,
   trackShare,
 } from "@/lib/analytics";
+import { uploadPhotoStrip } from "@/lib/shareUtils";
 
 const STORAGE_KEY = "capturedPhotos";
 const STRIP_WIDTH = 400;
@@ -518,6 +519,7 @@ function CustomizeContent() {
   const shareRef = useRef<HTMLDivElement | null>(null);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isCopying, setIsCopying] = useState(false);
 
   useEffect(() => {
     if (!isShareOpen) return;
@@ -767,10 +769,57 @@ function CustomizeContent() {
     setIsShareOpen(false);
   };
 
-  const handleSharePinterest = async () => {
+  const handleSharePinterest = () => {
+    // window.open 必须在用户点击后同步直接调用，否则浏览器会拦截弹窗（about:blank#blocked）
+    const shareWin = window.open("", "_blank", "noopener,noreferrer");
+    if (!shareWin) {
+      toast.error("Please allow popups for this site to share to Pinterest.");
+      setIsShareOpen(false);
+      return;
+    }
     trackShare("pinterest");
+    setIsShareOpen(false);
     const loadingId = toast.loading("Preparing image for Pinterest...");
+    (async () => {
+      try {
+        const blob = await renderPhotoStripBlob({
+          template: effectiveTemplate,
+          photos,
+          stickers,
+          filter,
+          footerText,
+        });
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const result = reader.result;
+            resolve(typeof result === "string" ? result : "");
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+        const pinterestUrl =
+          "https://pinterest.com/pin/create/button/?url=" +
+          encodeURIComponent(window.location.href) +
+          "&media=" +
+          encodeURIComponent(dataUrl) +
+          "&description=" +
+          encodeURIComponent("My photo strip from Photobooth Online");
+        shareWin.location.href = pinterestUrl;
+      } catch (err) {
+        console.error("Failed to prepare image for Pinterest", err);
+        toast.dismiss(loadingId);
+        toast.error("Failed to prepare image for Pinterest. Please try again.");
+        shareWin.close();
+        return;
+      }
+      toast.dismiss(loadingId);
+    })();
+  };
+
+  const handleCopyLink = async () => {
     try {
+      setIsCopying(true);
       const blob = await renderPhotoStripBlob({
         template: effectiveTemplate,
         photos,
@@ -778,38 +827,21 @@ function CustomizeContent() {
         filter,
         footerText,
       });
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const result = reader.result;
-        const dataUrl = typeof result === "string" ? result : "";
-        toast.dismiss(loadingId);
-        const pinterestUrl = `https://pinterest.com/pin/create/button/?url=${encodeURIComponent(
-          window.location.href,
-        )}&media=${encodeURIComponent(
-          dataUrl,
-        )}&description=${encodeURIComponent(
-          "My photo strip from Photobooth Online",
-        )}`;
-        window.open(pinterestUrl, "_blank");
-      };
-      reader.readAsDataURL(blob);
-    } catch (err) {
-      toast.dismiss(loadingId);
-      console.error("Failed to prepare image for Pinterest", err);
-      alert("Failed to prepare image for Pinterest. Please try again.");
-    } finally {
-      setIsShareOpen(false);
-    }
-  };
-
-  const handleCopyLink = async () => {
-    try {
-      await navigator.clipboard.writeText(window.location.href);
+      if (!blob) {
+        throw new Error("Failed to generate image blob.");
+      }
+      const imageUrl = await uploadPhotoStrip(blob);
+      const shareUrl = `${window.location.origin}/share?img=${encodeURIComponent(imageUrl)}`;
+      await navigator.clipboard.writeText(shareUrl);
       trackShare("copy_link");
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch {
-      alert("Failed to copy link. Please copy it manually.");
+      toast.success("Share link copied!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to generate share link. Please try again.");
+    } finally {
+      setIsCopying(false);
     }
   };
 
@@ -1406,12 +1438,19 @@ function CustomizeContent() {
                           <button
                             type="button"
                             onClick={handleCopyLink}
-                            className="flex flex-col items-center gap-1 text-[11px] text-neutral-700"
+                            disabled={isCopying || photos.length === 0}
+                            className="flex flex-col items-center gap-1 text-[11px] text-neutral-700 disabled:cursor-not-allowed disabled:opacity-60"
                           >
                             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-900 text-white">
                               <Link2 className="h-4 w-4" />
                             </span>
-                            <span>{copied ? "Copied!" : "Copy link"}</span>
+                            <span>
+                              {isCopying
+                                ? "Generating..."
+                                : copied
+                                  ? "Copied! ✓"
+                                  : "Copy Link"}
+                            </span>
                           </button>
                         </div>
                       </div>
