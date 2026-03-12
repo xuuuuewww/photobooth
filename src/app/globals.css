@@ -144,3 +144,26 @@
     animation: float-soft 7s ease-in-out infinite;
   }
 }
+
+/* 博客正文强制黑色，覆盖 typography 插件默认色 */
+.blog-article-prose.prose {
+  color: #0a0a0a;
+}
+.blog-article-prose.prose p,
+.blog-article-prose.prose li,
+.blog-article-prose.prose td,
+.blog-article-prose.prose th,
+.blog-article-prose.prose strong,
+.blog-article-prose.prose blockquote {
+  color: #0a0a0a !important;
+}
+
+/* 博客正文段落间距：每段下方 12px（高优先级覆盖 typography） */
+div[data-blog-article].prose p,
+div[data-blog-article] p {
+  margin-bottom: 12px !important;
+}
+div[data-blog-article].prose p:last-of-type,
+div[data-blog-article] p:last-of-type {
+  margin-bottom: 0 !important;
+}

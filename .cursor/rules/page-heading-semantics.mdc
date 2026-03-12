@@ -1,0 +1,16 @@
+---
+description: Enforce a single rendered H1 per page
+alwaysApply: true
+---
+
+# Single H1 Per Page
+
+- Every rendered page on this site must have exactly one `h1`.
+- If a page layout or route component already renders the page title as `h1`, content files must not add another `#` heading.
+- For blog posts, the visible page `h1` comes from frontmatter metadata rendered by `src/app/blog/[slug]/page.tsx`.
+- Never add a second `h1` inside blog MDX content.
+
+Examples:
+
+- Bad: frontmatter title renders as `h1` and the MDX body also starts with `# Title`
+- Good: frontmatter title renders the page `h1`, and the MDX body starts with an intro paragraph or `##` section

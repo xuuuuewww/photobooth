@@ -1,0 +1,23 @@
+---
+description: Keep blog FAQ visible in MDX articles
+globs: content/blog/**/*.mdx
+alwaysApply: false
+---
+
+# Blog FAQ Visibility
+
+- FAQ content must be visible in the article body under the `## FAQ` section.
+- Do not rely on `FAQAccordion` for blog MDX content.
+- Write FAQ entries as plain MDX content using `### Question` followed by a normal paragraph answer.
+- Keep the visible FAQ content aligned with any FAQPage JSON-LD at the bottom of the article.
+- Blog MDX files must not contain a `#` heading because the blog page already renders the single page `h1`.
+
+Example:
+
+```mdx
+## FAQ
+
+### What is a virtual photo booth?
+
+A virtual photo booth lets guests take and share photos in the browser.
+```
