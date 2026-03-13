@@ -167,3 +167,24 @@ div[data-blog-article].prose p:last-of-type,
 div[data-blog-article] p:last-of-type {
   margin-bottom: 0 !important;
 }
+
+/* 博客正文里的表格样式：让列对齐、留出左右间距 */
+div[data-blog-article] table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+div[data-blog-article] thead tr {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+div[data-blog-article] tbody tr + tr {
+  border-top: 1px solid #f3f4f6;
+}
+
+div[data-blog-article] th,
+div[data-blog-article] td {
+  padding: 0.25rem 0.75rem;
+  vertical-align: top;
+}
+

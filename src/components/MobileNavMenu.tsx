@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { href: "/capture", label: "Capture" },
   { href: "/customize", label: "Customize" },
   { href: "/blog", label: "Blog" },
+  { href: "/blog/how-to-use-photobooth-online", label: "Guide" },
 ] as const;
 
 export function MobileNavMenu() {

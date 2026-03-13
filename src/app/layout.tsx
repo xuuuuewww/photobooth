@@ -104,6 +104,12 @@ export default function RootLayout({
                   <Link href="/blog" className="transition hover:text-pink-700">
                     Blog
                   </Link>
+                  <Link
+                    href="/blog/how-to-use-photobooth-online"
+                    className="transition hover:text-pink-700"
+                  >
+                    Guide
+                  </Link>
                 </nav>
                 <MobileNavMenu />
               </div>

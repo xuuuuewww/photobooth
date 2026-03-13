@@ -11,6 +11,7 @@ import { ProTip } from "@/components/mdx/ProTip";
 import { StepByStep, Step } from "@/components/mdx/StepByStep";
 import { ProsCons } from "@/components/mdx/ProsCons";
 import { NextJSImage } from "@/components/mdx/NextJSImage";
+import { BlogImg } from "@/components/mdx/BlogImg";
 import { FAQAccordion } from "@/components/mdx/FAQAccordion";
 import { ComparisonTable } from "@/components/mdx/ComparisonTable";
 
@@ -72,6 +73,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     Step,
     ProsCons,
     NextJSImage,
+    img: BlogImg,
     FAQAccordion,
     ComparisonTable,
     a: ({ href, children, ...props }: React.ComponentProps<"a">) => {
@@ -80,7 +82,13 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         "font-medium text-pink-600 underline underline-offset-2 decoration-pink-400 transition hover:text-pink-700 hover:decoration-pink-600 cursor-pointer";
       if (isExternal) {
         return (
-          <a href={href} className={className} target="_blank" rel="nofollow noopener" {...props}>
+          <a
+            href={href}
+            className={className}
+            target="_blank"
+            rel="nofollow noopener"
+            {...props}
+          >
             {children}
           </a>
         );
@@ -100,7 +108,11 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       </h3>
     ),
     p: ({ children, ...props }: React.ComponentProps<"p">) => (
-      <p className="text-black leading-relaxed" style={{ marginBottom: '12px' }} {...props}>
+      <p
+        className="text-black leading-relaxed"
+        style={{ marginBottom: "12px" }}
+        {...props}
+      >
         {children}
       </p>
     ),
@@ -108,7 +120,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       let raw = "section";
       if (typeof children === "string") raw = children;
       else if (children != null && Array.isArray(children))
-        raw = (children as unknown[]).map((c) => (typeof c === "string" ? c : "")).join("") || raw;
+        raw =
+          (children as unknown[])
+            .map((c) => (typeof c === "string" ? c : ""))
+            .join("") || raw;
       const id = slugify(raw);
       return (
         <h2
@@ -151,50 +166,59 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
           <article className="min-w-0 flex-1 rounded-3xl border border-pink-100 bg-white p-6 shadow-sm sm:p-8">
             <header className="border-b border-pink-100 pb-6">
-            <h1 className="text-3xl font-bold tracking-tight text-pink-700 sm:text-4xl">
-              {post.title}
-            </h1>
-            <p className="mt-3 text-base text-neutral-500">{post.description}</p>
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-              {post.tags.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {post.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="rounded-full bg-pink-100 px-3 py-1 text-xs font-medium text-pink-700"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                <span />
-              )}
-              <time className="shrink-0 text-sm text-neutral-500" dateTime={post.date}>
-                {formatDate(post.date)}
-              </time>
-            </div>
-          </header>
+              <h1 className="text-3xl font-bold tracking-tight text-pink-700 sm:text-4xl">
+                {post.h1 ?? post.title}
+              </h1>
+              <p className="mt-3 text-base text-neutral-500">
+                {post.description}
+              </p>
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                {post.tags.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {post.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded-full bg-pink-100 px-3 py-1 text-xs font-medium text-pink-700"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <span />
+                )}
+                <time
+                  className="shrink-0 text-sm text-neutral-500"
+                  dateTime={post.date}
+                >
+                  {formatDate(post.date)}
+                </time>
+              </div>
+            </header>
 
             <div className="lg:hidden">
               <TOC />
             </div>
 
-          <div data-blog-article className="blog-article-prose prose prose-lg mt-8 max-w-none text-black prose-headings:text-pink-700 prose-p:!text-black prose-li:!text-black prose-a:font-medium prose-a:text-pink-600 prose-a:underline prose-a:underline-offset-2 prose-a:decoration-pink-400 prose-p:leading-relaxed prose-p:mb-3 prose-ul:my-5 prose-ol:my-5 prose-li:my-1 prose-h3:mt-8 prose-h3:mb-3 prose-h3:font-bold prose-h3:!text-black prose-h3:leading-snug prose-th:!text-black prose-td:!text-black prose-strong:!text-black prose-blockquote:!text-black [&_a:hover]:text-pink-700 [&_a:hover]:decoration-pink-600">
-          <MDXRemote
-            source={post.content}
-            components={mdxComponents}
-            options={{
-              mdxOptions: {
-                remarkPlugins: [remarkGfm],
-                rehypePlugins: [rehypeHighlight],
-              },
-            }}
-          />
-          </div>
+            <div
+              data-blog-article
+              className="blog-article-prose prose prose-lg mt-8 max-w-none text-black prose-headings:text-pink-700 prose-p:!text-black prose-li:!text-black prose-a:font-medium prose-a:text-pink-600 prose-a:underline prose-a:underline-offset-2 prose-a:decoration-pink-400 prose-p:leading-relaxed prose-p:mb-3 prose-ul:my-5 prose-ol:my-5 prose-li:my-1 prose-h3:mt-8 prose-h3:mb-3 prose-h3:font-bold prose-h3:!text-black prose-h3:leading-snug prose-th:!text-black prose-td:!text-black prose-strong:!text-black prose-blockquote:!text-black [&_table]:w-full [&_table]:border-collapse [&_th]:border [&_th]:border-pink-200 [&_th]:px-4 [&_th]:py-2 [&_th]:bg-pink-50 [&_th]:text-left [&_td]:border [&_td]:border-pink-200 [&_td]:px-4 [&_td]:py-2 [&_a:hover]:text-pink-700 [&_a:hover]:decoration-pink-600"
+            >
+              <MDXRemote
+                source={post.content}
+                components={mdxComponents}
+                options={{
+                  mdxOptions: {
+                    remarkPlugins: [remarkGfm],
+                    rehypePlugins: [rehypeHighlight],
+                  },
+                }}
+              />
+            </div>
           </article>
         </div>
       </div>
     </main>
   );
 }
+

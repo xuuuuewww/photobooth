@@ -11,6 +11,8 @@ export interface BlogPost {
   date: string;
   tags: string[];
   content: string;
+  /** Optional display H1; when set, used as page heading instead of title */
+  h1?: string;
 }
 
 function normalizeDate(value: unknown): string {
@@ -59,5 +61,6 @@ export function getPostBySlug(slug: string): BlogPost | null {
       ? data.tags.filter((tag): tag is string => typeof tag === "string")
       : [],
     content,
+    h1: typeof data.h1 === "string" ? data.h1 : undefined,
   };
 }
