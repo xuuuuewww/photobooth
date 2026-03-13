@@ -20,7 +20,7 @@ export function BlogImg({
   height,
   className,
 }: React.ImgHTMLAttributes<HTMLImageElement>) {
-  if (!src) return null;
+  if (!src || typeof src !== "string") return null;
 
   const normalizedSrc =
     src.startsWith("http") || src.startsWith("//")
