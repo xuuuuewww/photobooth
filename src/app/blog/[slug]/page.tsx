@@ -77,13 +77,37 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     FAQAccordion,
     ComparisonTable,
     a: ({ href, children, ...props }: React.ComponentProps<"a">) => {
-      const isExternal = href?.startsWith("http");
       const className =
         "font-medium text-pink-600 underline underline-offset-2 decoration-pink-400 transition hover:text-pink-700 hover:decoration-pink-600 cursor-pointer";
+
+      const rawHref = href ?? "/";
+      const isAbsolute = rawHref.startsWith("http");
+
+      let isExternal = false;
+      let normalizedHref = rawHref;
+
+      if (isAbsolute) {
+        try {
+          const url = new URL(rawHref);
+          const host = url.hostname.replace(/^www\./, "");
+          const isSameDomain = host === "photobooth-online.com";
+          if (isSameDomain) {
+            // Treat same-domain absolute URLs as internal links
+            normalizedHref = `${url.pathname}${url.search}${url.hash || ""}` || "/";
+            isExternal = false;
+          } else {
+            isExternal = true;
+          }
+        } catch {
+          // If URL parsing fails, fall back to treating as external
+          isExternal = true;
+        }
+      }
+
       if (isExternal) {
         return (
           <a
-            href={href}
+            href={rawHref}
             className={className}
             target="_blank"
             rel="nofollow noopener"
@@ -93,8 +117,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           </a>
         );
       }
+
       return (
-        <Link href={href ?? "/"} className={className} {...props}>
+        <Link href={normalizedHref} className={className} {...props}>
           {children}
         </Link>
       );

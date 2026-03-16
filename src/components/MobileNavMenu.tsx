@@ -14,9 +14,21 @@ const NAV_ITEMS = [
   { href: "/blog/how-to-use-photobooth-online", label: "Guide" },
 ] as const;
 
+function getActiveHref(pathname: string | null) {
+  if (!pathname) return "";
+
+  const matches = NAV_ITEMS.filter((item) => {
+    if (item.href === "/") return pathname === "/";
+    return pathname === item.href || pathname.startsWith(`${item.href}/`);
+  });
+
+  return matches.sort((a, b) => b.href.length - a.href.length)[0]?.href ?? "";
+}
+
 export function MobileNavMenu() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const activeHref = getActiveHref(pathname);
 
   useEffect(() => {
     setOpen(false);
@@ -38,10 +50,7 @@ export function MobileNavMenu() {
         <div className="absolute right-0 top-10 z-50 w-40 overflow-hidden rounded-2xl border border-pink-100 bg-white/95 shadow-[0_14px_32px_rgba(15,23,42,0.18)] backdrop-blur">
           <nav className="flex flex-col p-1.5 text-sm font-semibold text-pink-600">
             {NAV_ITEMS.map((item) => {
-              const isActive =
-                item.href === "/"
-                  ? pathname === item.href
-                  : pathname?.startsWith(item.href);
+              const isActive = item.href === activeHref;
               return (
                 <Link
                   key={item.href}
