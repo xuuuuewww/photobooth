@@ -300,8 +300,9 @@ export function PhotoBoothInlineFlow() {
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [bgColor, setBgColor] = useState<string>(templates[0]?.bgColor ?? "#fff");
-  const [bgPattern, setBgPattern] =
-    useState<BackgroundPatternOption>(templates[0]?.bgPattern ?? "solid");
+  const [bgPattern, setBgPattern] = useState<BackgroundPatternOption>(
+    (templates[0]?.bgPattern ?? "solid") as BackgroundPatternOption,
+  );
   const [filter, setFilter] = useState<FilterOption>("none");
   const [footerText, setFooterText] = useState<string>(
     templates[0]?.footerText ?? "photobooth-online.com",
@@ -339,7 +340,9 @@ export function PhotoBoothInlineFlow() {
     if (!baseTemplate) return;
     setBgColor(baseTemplate.bgColor);
     setFooterText(baseTemplate.footerText);
-    setBgPattern(baseTemplate.bgPattern ?? "solid");
+    setBgPattern(
+      (baseTemplate.bgPattern ?? "solid") as BackgroundPatternOption,
+    );
     setFilter(
       baseTemplate.filterClass === "sepia"
         ? "sepia"
