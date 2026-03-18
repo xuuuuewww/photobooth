@@ -846,9 +846,9 @@ function CustomizeContent() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-46px)] bg-neutral-50 px-3 py-2 md:min-h-[calc(100vh-4rem)] md:px-8 md:py-6">
+    <div className="min-h-screen min-h-[100dvh] bg-neutral-50 px-3 py-2 md:min-h-[calc(100vh-4rem)] md:px-8 md:py-6">
       <div className="mx-auto w-full max-w-6xl">
-        <div className="flex h-[calc(100dvh-46px)] min-h-0 flex-col overflow-hidden md:hidden">
+        <div className="flex min-h-screen min-h-[100dvh] flex-col md:hidden">
           <div className="sticky top-0 z-20 bg-neutral-50 pb-1">
             <h1 className="px-1 pb-1 text-[11px] font-semibold uppercase tracking-[0.12em] whitespace-nowrap overflow-hidden text-ellipsis text-pink-500">
               Step 3 · Customize Your Photo Strip &amp; Download

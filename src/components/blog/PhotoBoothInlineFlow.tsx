@@ -486,8 +486,8 @@ export function PhotoBoothInlineFlow() {
   };
 
   return (
-    <section className="flex h-full flex-col overflow-hidden rounded-3xl border border-pink-100 bg-white shadow-sm">
-      <div className="min-h-0 flex-1 overflow-auto px-4 pb-5 pt-3 sm:px-5 sm:pt-6">
+    <section className="flex flex-col rounded-3xl border border-pink-100 bg-white shadow-sm">
+      <div className="px-4 pb-5 pt-3 sm:px-5 sm:pt-6">
         {step === "template" && (
           <div className="flex flex-col">
             <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 sm:grid sm:snap-none sm:overflow-visible sm:pb-0 sm:grid-cols-2 lg:grid-cols-4">
@@ -500,7 +500,7 @@ export function PhotoBoothInlineFlow() {
                     type="button"
                     onClick={() => setSelectedTemplateId(template.id)}
                     className={cn(
-                      "flex min-w-[220px] max-w-[240px] snap-center flex-col overflow-hidden rounded-2xl border bg-white text-left transition sm:min-w-0 sm:max-w-none",
+                      "flex min-w-[200px] max-w-[220px] snap-center flex-col overflow-hidden rounded-2xl border bg-white text-left transition sm:min-w-0 sm:max-w-none",
                       active
                         ? "border-pink-300 ring-2 ring-pink-200"
                         : "border-neutral-200 hover:border-pink-200",
@@ -581,19 +581,21 @@ export function PhotoBoothInlineFlow() {
                 );
               })}
             </div>
-            <div className="mt-5 flex items-center justify-end gap-2">
+            <div className="mt-6 flex flex-col items-stretch gap-2 sm:mt-5 sm:flex-row sm:items-center sm:justify-end">
               <button
                 type="button"
                 onClick={() => {
                   setPhotos([]);
                   setStep("capture");
                 }}
-                className="inline-flex items-center gap-2 rounded-full bg-pink-500 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_16px_40px_rgba(244,114,182,0.4)] transition hover:bg-pink-400"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-pink-500 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_16px_40px_rgba(244,114,182,0.4)] transition hover:bg-pink-400 sm:w-auto"
               >
                 Continue to Capture
                 <ArrowRight className="h-4 w-4" />
               </button>
-              <span className="text-xs text-neutral-400">Step 1/3</span>
+              <span className="text-center text-xs text-neutral-400 sm:text-right">
+                Step 1/3
+              </span>
             </div>
           </div>
         )}
