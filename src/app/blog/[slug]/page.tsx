@@ -66,6 +66,39 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const { slug } = await params;
   const post = getPostBySlug(slug);
   if (!post) notFound();
+  const siteUrl = "https://www.photobooth-online.com";
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Article",
+        headline: post.title,
+        author: { "@type": "Person", name: "BettyH" },
+        datePublished: post.date,
+        dateModified: post.date,
+        mainEntityOfPage: `${siteUrl}/blog/${post.slug}`,
+        publisher: {
+          "@type": "Organization",
+          name: "Photobooth Online",
+          url: siteUrl,
+        },
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: siteUrl },
+          { "@type": "ListItem", position: 2, name: "Blog", item: `${siteUrl}/blog` },
+          {
+            "@type": "ListItem",
+            position: 3,
+            name: post.title,
+            item: `${siteUrl}/blog/${post.slug}`,
+          },
+        ],
+      },
+    ],
+  } as const;
 
   const mdxComponents = {
     TOC: () => null,
@@ -208,6 +241,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               data-blog-article
               className="blog-article-prose prose prose-lg mt-2 max-w-none text-black prose-headings:text-pink-700 prose-p:!text-black prose-li:!text-black prose-a:font-medium prose-a:text-pink-600 prose-a:underline prose-a:underline-offset-2 prose-a:decoration-pink-400 prose-p:leading-relaxed prose-p:mb-3 prose-ul:my-5 prose-ol:my-5 prose-li:my-1 prose-h3:mt-8 prose-h3:mb-3 prose-h3:font-bold prose-h3:!text-black prose-h3:leading-snug prose-th:!text-black prose-td:!text-black prose-strong:!text-black prose-blockquote:!text-black [&_table]:w-full [&_table]:border-collapse [&_th]:border [&_th]:border-pink-200 [&_th]:px-4 [&_th]:py-2 [&_th]:bg-pink-50 [&_th]:text-left [&_td]:border [&_td]:border-pink-200 [&_td]:px-4 [&_td]:py-2 [&_a:hover]:text-pink-700 [&_a:hover]:decoration-pink-600"
             >
+              <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+              />
               <MDXRemote
                 source={post!.content}
                 components={mdxComponents}
