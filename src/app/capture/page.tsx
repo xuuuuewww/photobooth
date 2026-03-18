@@ -251,7 +251,7 @@ function CaptureContent() {
   }, [photos.length]);
 
   return (
-    <div className="h-[calc(100dvh-46px)] overflow-hidden bg-neutral-50 px-3 pb-3 pt-0 md:min-h-[calc(100vh-4rem)] md:h-auto md:overflow-visible md:px-8 md:py-6">
+    <div className="min-h-screen min-h-[100dvh] bg-neutral-50 px-3 pb-3 pt-0 md:min-h-[calc(100vh-4rem)] md:h-auto md:overflow-visible md:px-8 md:py-6">
       <div className="mx-auto hidden w-full max-w-6xl gap-4 md:grid md:grid-cols-[minmax(0,1fr)_24rem] lg:grid-cols-[minmax(0,1fr)_26rem]">
         <section className="relative overflow-hidden rounded-[2rem] border border-neutral-200 bg-white/80 shadow-[0_18px_70px_rgba(15,23,42,0.12)]">
           <div className="flex items-center justify-between border-b border-neutral-200/70 px-4 py-3">
