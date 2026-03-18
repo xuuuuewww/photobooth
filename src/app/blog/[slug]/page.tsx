@@ -166,12 +166,12 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   return (
     <main className="bg-neutral-50">
       {/* 首屏：标题 + 功能区（PhotoBoothInlineFlow） */}
-      <section className="h-[66svh] overflow-hidden px-4 py-4 sm:px-6 lg:px-8">
-        <div className="mx-auto flex h-full w-full max-w-6xl flex-col">
+      <section className="px-4 py-4 sm:px-6 lg:px-8 md:h-[66svh] md:overflow-hidden">
+        <div className="mx-auto flex w-full max-w-6xl flex-col md:h-full">
           <h1 className="text-2xl font-bold tracking-tight text-pink-700 md:text-4xl mt-[10px] mb-[10px] md:mt-[20px] md:mb-[20px]">
             {post!.h1 ?? post!.title}
           </h1>
-          <div className="mt-4 min-h-0 flex-1 overflow-hidden">
+          <div className="mt-4">
             <PhotoBoothInlineFlow />
           </div>
         </div>
