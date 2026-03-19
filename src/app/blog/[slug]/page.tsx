@@ -40,6 +40,10 @@ function formatDate(date: string): string {
   });
 }
 
+function formatDateISO(dateStr: string): string {
+  return new Date(dateStr).toISOString();
+}
+
 export async function generateStaticParams() {
   return getAllPosts().map((post) => ({ slug: post.slug }));
 }
@@ -74,9 +78,13 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       {
         "@type": "Article",
         headline: post.title,
-        author: { "@type": "Person", name: "BettyH" },
-        datePublished: post.date,
-        dateModified: post.date,
+        image: {
+          "@type": "ImageObject",
+          url: "https://www.photobooth-online.com/blog-image/how-to-use-photobooth-online.png",
+        },
+        author: { "@type": "Person", name: "BettyH", url: "https://www.photobooth-online.com" },
+        datePublished: formatDateISO(post.date),
+        dateModified: formatDateISO(post.date),
         mainEntityOfPage: `${siteUrl}/blog/${post.slug}`,
         publisher: {
           "@type": "Organization",
