@@ -7,6 +7,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 import { MobileNavMenu } from "@/components/MobileNavMenu";
+import { BottomFooterNav } from "@/components/BottomFooterNav";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://photobooth-online.com"),
@@ -115,6 +116,7 @@ export default function RootLayout({
               </div>
             </header>
             <main className="flex-1 pt-[46px] md:pt-[60px]">{children}</main>
+            <BottomFooterNav />
           </div>
           <Toaster richColors position="top-center" />
         </ThemeProvider>
