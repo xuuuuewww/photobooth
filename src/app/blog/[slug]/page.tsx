@@ -48,7 +48,7 @@ function formatDateISO(dateStr: string): string {
 
 function stripJsonLdScripts(mdx: string): string {
   // Remove any embedded JSON-LD blocks inside MDX to avoid duplicated structured data.
-  // We inject our own JSON-LD server-side below.
+  // We inject our own JSON-LD server-side below (FAQ + Article/Breadcrumb).
   return mdx.replace(
     /<script\s+type="application\/ld\+json">\{\`[\s\S]*?\`\}<\/script>/g,
     "",
