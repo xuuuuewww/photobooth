@@ -20,6 +20,8 @@ type BlogPostPageProps = {
   params: Promise<{ slug: string }>;
 };
 
+type FAQItem = { question: string; answer: string };
+
 function slugify(text: string): string {
   return text
     .replace(/\*\*?|\[]\([^)]*\)|`/g, "")
@@ -42,6 +44,128 @@ function formatDate(date: string): string {
 
 function formatDateISO(dateStr: string): string {
   return new Date(dateStr).toISOString();
+}
+
+function stripJsonLdScripts(mdx: string): string {
+  // Remove any embedded JSON-LD blocks inside MDX to avoid duplicated structured data.
+  // We inject our own JSON-LD server-side below.
+  return mdx.replace(
+    /<script\s+type="application\/ld\+json">\{\`[\s\S]*?\`\}<\/script>/g,
+    "",
+  );
+}
+
+function cleanMdxText(text: string): string {
+  return text
+    .replace(/\{\s*\/\*[\s\S]*?\*\/\s*\}/g, "")
+    .replace(/\*\*(.*?)\*\*/g, "$1")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/^\s*[-*]\s+/gm, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function extractFaqItemsFromMdxHeadings(mdx: string): FAQItem[] {
+  const lines = mdx.split("\n");
+
+  let start = -1;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (/^##\s+/i.test(line) && /(faq|frequently asked questions|常见问题)/i.test(line)) {
+      start = i + 1;
+      break;
+    }
+  }
+
+  if (start === -1) return [];
+
+  // End at next level-2 heading.
+  let end = lines.length;
+  for (let j = start; j < lines.length; j++) {
+    if (/^##\s+/i.test(lines[j].trim())) {
+      end = j;
+      break;
+    }
+  }
+
+  const section = lines.slice(start, end);
+
+  const questionHeadingRegex = /^###\s+(.+?)\s*$/;
+  const items: FAQItem[] = [];
+
+  let currentQ: string | null = null;
+  let currentAnswerLines: string[] = [];
+
+  const flush = () => {
+    if (!currentQ) return;
+    const answer = cleanMdxText(currentAnswerLines.join("\n"));
+    if (answer) items.push({ question: currentQ, answer });
+    currentQ = null;
+    currentAnswerLines = [];
+  };
+
+  for (const rawLine of section) {
+    const line = rawLine.trimEnd();
+    const m = line.match(questionHeadingRegex);
+    if (m) {
+      flush();
+      currentQ = m[1].trim();
+      continue;
+    }
+    if (currentQ) currentAnswerLines.push(line);
+  }
+
+  flush();
+  return items;
+}
+
+function extractFaqItemsFromJsonLd(mdx: string): FAQItem[] {
+  const items: FAQItem[] = [];
+
+  const scriptRegex =
+    /<script\s+type="application\/ld\+json">\{\`([\s\S]*?)\`\}<\/script>/g;
+
+  for (const match of mdx.matchAll(scriptRegex)) {
+    const jsonText = match[1];
+    try {
+      const parsed = JSON.parse(jsonText);
+      const graph: any[] = Array.isArray(parsed?.["@graph"])
+        ? parsed["@graph"]
+        : Array.isArray(parsed?.graph)
+          ? parsed.graph
+          : [];
+
+      const faqNode =
+        graph.find((n) => n?.["@type"] === "FAQPage") ||
+        parsed?.["@type"] === "FAQPage"
+          ? parsed
+          : null;
+
+      if (!faqNode) continue;
+      const mainEntity = faqNode.mainEntity;
+      if (!Array.isArray(mainEntity)) continue;
+
+      for (const entry of mainEntity) {
+        const question = entry?.name;
+        const answer = entry?.acceptedAnswer?.text;
+        if (typeof question === "string" && typeof answer === "string") {
+          items.push({ question, answer });
+        }
+      }
+    } catch {
+      // Ignore invalid JSON-LD blocks.
+    }
+  }
+
+  return items;
+}
+
+function extractFaqItems(mdx: string): FAQItem[] {
+  const fromHeadings = extractFaqItemsFromMdxHeadings(mdx);
+  if (fromHeadings.length > 0) return fromHeadings;
+
+  // Fallback: parse any embedded FAQPage JSON-LD in the MDX.
+  return extractFaqItemsFromJsonLd(mdx);
 }
 
 export async function generateStaticParams() {
@@ -71,6 +195,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const post = getPostBySlug(slug);
   if (!post) notFound();
   const siteUrl = "https://www.photobooth-online.com";
+
+  const faqItems = extractFaqItems(post.content);
+  const mdxSource = stripJsonLdScripts(post.content);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -104,6 +231,17 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             item: `${siteUrl}/blog/${post.slug}`,
           },
         ],
+      },
+      {
+        "@type": "FAQPage",
+        mainEntity: faqItems.map((item) => ({
+          "@type": "Question",
+          name: item.question,
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: item.answer,
+          },
+        })),
       },
     ],
   } as const;
@@ -254,7 +392,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
               />
               <MDXRemote
-                source={post!.content}
+                source={mdxSource}
                 components={mdxComponents}
                 options={{
                   mdxOptions: {
