@@ -1,0 +1,28 @@
+diff --git a/node_modules/next/dist/esm/server/app-render/rsc/preloads.js b/node_modules/next/dist/esm/server/app-render/rsc/preloads.js
+index e334f35..35e3de5 100644
+--- a/node_modules/next/dist/esm/server/app-render/rsc/preloads.js
++++ b/node_modules/next/dist/esm/server/app-render/rsc/preloads.js
+@@ -18,7 +18,8 @@ export function preloadFont(href, type, crossOrigin, nonce) {
+ export function preloadFont(href, type, crossOrigin, nonce) {
+     const opts = {
+         as: 'font',
+-        type
++        type,
++        fetchPriority: 'low'
+     };
+     if (typeof crossOrigin === 'string') {
+         opts.crossOrigin = crossOrigin;
+diff --git a/node_modules/next/dist/server/app-render/rsc/preloads.js b/node_modules/next/dist/server/app-render/rsc/preloads.js
+index f6e1e78..72e6fec 100644
+--- a/node_modules/next/dist/server/app-render/rsc/preloads.js
++++ b/node_modules/next/dist/server/app-render/rsc/preloads.js
+@@ -49,7 +49,8 @@ function preloadFont(href, type, crossOrigin, nonce) {
+ function preloadFont(href, type, crossOrigin, nonce) {
+     const opts = {
+         as: 'font',
+-        type
++        type,
++        fetchPriority: 'low'
+     };
+     if (typeof crossOrigin === 'string') {
+         opts.crossOrigin = crossOrigin;

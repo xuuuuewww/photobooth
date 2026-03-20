@@ -198,7 +198,7 @@ export function HomeTemplateGrid() {
             className="flex snap-x snap-mandatory gap-3 overflow-x-auto px-[7%] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
             aria-label="Template preview carousel"
           >
-            {orderedTemplates.map(({ template }, index) => (
+            {orderedTemplates.map(({ template }) => (
               <div
                 key={template.id}
                 className="w-[86%] shrink-0 snap-center rounded-[1.75rem] border border-neutral-200 bg-white/90 p-3 shadow-[0_16px_42px_rgba(15,23,42,0.12)] transition-transform duration-300"
@@ -218,7 +218,6 @@ export function HomeTemplateGrid() {
                       photoAlts={DEMO_PHOTO_ALTS[template.id]}
                       scale={0.34}
                       className="pointer-events-none drop-shadow-[0_16px_24px_rgba(15,23,42,0.2)]"
-                      priority={index === 0}
                     />
                   </div>
                   <div className="px-1 pb-1 pt-3 text-center">
@@ -267,7 +266,7 @@ export function HomeTemplateGrid() {
       </div>
 
       <div className="hidden place-items-stretch grid-cols-1 gap-4 sm:grid-cols-2 md:grid md:grid-cols-4 md:gap-6">
-        {templates.map((template, index) => {
+        {templates.map((template) => {
           return (
             <Link
               key={template.id}
@@ -286,7 +285,6 @@ export function HomeTemplateGrid() {
                     photoAlts={DEMO_PHOTO_ALTS[template.id]}
                     scale={0.32}
                     className="pointer-events-none"
-                    priority={index === 0}
                   />
                 </div>
                 <div className="px-3 pb-4 pt-3 text-center">

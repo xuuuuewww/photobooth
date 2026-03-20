@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import Script from "next/script";
+import { preload } from "react-dom";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
@@ -70,15 +71,14 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  preload("/demo/vintage/1.webp", { as: "image" });
+
   return (
     <html
       lang="en"
       suppressHydrationWarning
       className={`${fontSans.variable} ${fontMono.variable}`}
     >
-      <head>
-        <link rel="preload" as="image" href="/demo/vintage/1.webp" />
-      </head>
       <body className="min-h-screen bg-[radial-gradient(circle_at_top,_#ffe2f2,_#fff5f9_55%,_#ffe4ef_100%)] font-sans text-foreground antialiased">
         <ThemeProvider>
           <div className="flex min-h-screen flex-col">
