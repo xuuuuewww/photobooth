@@ -26,9 +26,49 @@ export function BottomFooterNav() {
           Make Photo Strips Online
         </p>
 
-        <p className="text-[13px] text-neutral-500">
-          © 2026 photobooth-online.com. All Rights Reserved.
-        </p>
+        <div className="flex flex-col items-center gap-2 sm:items-end">
+          <nav
+            aria-label="Footer"
+            className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[13px] text-neutral-500 sm:justify-end"
+          >
+            <Link
+              href="/blog"
+              className="transition-colors hover:text-pink-500"
+            >
+              Blog
+            </Link>
+            <span className="text-neutral-300 select-none" aria-hidden>
+              |
+            </span>
+            <Link
+              href="/blog/how-to-use-photobooth-online"
+              className="transition-colors hover:text-pink-500"
+            >
+              How to Use
+            </Link>
+            <span className="text-neutral-300 select-none" aria-hidden>
+              |
+            </span>
+            <Link
+              href="/capture"
+              className="transition-colors hover:text-pink-500"
+            >
+              Capture
+            </Link>
+            <span className="text-neutral-300 select-none" aria-hidden>
+              |
+            </span>
+            <Link
+              href="/customize"
+              className="transition-colors hover:text-pink-500"
+            >
+              Customize
+            </Link>
+          </nav>
+          <p className="text-[13px] text-neutral-500">
+            © 2026 photobooth-online.com. All Rights Reserved.
+          </p>
+        </div>
       </div>
     </footer>
   );

@@ -36,6 +36,33 @@ const DEMO_PHOTOS: Record<string, string[]> = {
   ],
 };
 
+const DEMO_PHOTO_ALTS: Record<string, string[]> = {
+  "vintage-sepia": [
+    "Vintage Sepia photo strip template - sample photo 1",
+    "Vintage Sepia photo strip template - sample photo 2",
+    "Vintage Sepia photo strip template - sample photo 3",
+    "Vintage Sepia photo strip template - sample photo 4",
+  ],
+  "wedding-classic": [
+    "Wedding Classic photo strip template - sample photo 1",
+    "Wedding Classic photo strip template - sample photo 2",
+    "Wedding Classic photo strip template - sample photo 3",
+    "Wedding Classic photo strip template - sample photo 4",
+  ],
+  "romantic-bw": [
+    "Romantic Black and White photo strip template - sample photo 1",
+    "Romantic Black and White photo strip template - sample photo 2",
+    "Romantic Black and White photo strip template - sample photo 3",
+    "Romantic Black and White photo strip template - sample photo 4",
+  ],
+  "romantic-color": [
+    "Romantic Color photo strip template - sample photo 1",
+    "Romantic Color photo strip template - sample photo 2",
+    "Romantic Color photo strip template - sample photo 3",
+    "Romantic Color photo strip template - sample photo 4",
+  ],
+};
+
 const MOBILE_TAB_ORDER = [
   { id: "vintage-sepia", label: "Vintage" },
   { id: "wedding-classic", label: "Wedding" },
@@ -119,7 +146,7 @@ export function HomeTemplateGrid() {
 
   return (
     <>
-      <div className="md:hidden">
+      <div className="md:hidden" aria-hidden="true">
         <div className="relative">
           <div className="pointer-events-none absolute bottom-0 left-0 top-0 z-10 w-7 bg-gradient-to-r from-neutral-50 to-transparent" />
           <div className="pointer-events-none absolute bottom-0 right-0 top-0 z-10 w-7 bg-gradient-to-l from-neutral-50 to-transparent" />
@@ -188,6 +215,7 @@ export function HomeTemplateGrid() {
                     <PhotoStripPreview
                       template={template}
                       photos={DEMO_PHOTOS[template.id] ?? []}
+                      photoAlts={DEMO_PHOTO_ALTS[template.id]}
                       scale={0.34}
                       className="pointer-events-none drop-shadow-[0_16px_24px_rgba(15,23,42,0.2)]"
                       priority={index === 0}
@@ -255,6 +283,7 @@ export function HomeTemplateGrid() {
                   <PhotoStripPreview
                     template={template}
                     photos={DEMO_PHOTOS[template.id] ?? []}
+                    photoAlts={DEMO_PHOTO_ALTS[template.id]}
                     scale={0.32}
                     className="pointer-events-none"
                     priority={index === 0}
