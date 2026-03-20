@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { GoogleAnalytics } from "@next/third-parties/google";
+import Script from "next/script";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -22,7 +23,7 @@ export const metadata: Metadata = {
     siteName: "Photobooth Online",
     images: [
       {
-        url: "/og-image.png",
+        url: "/og-image.webp",
         width: 1200,
         height: 630,
         alt: "Photobooth Online",
@@ -35,7 +36,7 @@ export const metadata: Metadata = {
     title: "Photobooth Online & Free",
     description:
       "Create beautiful photo booth strips in seconds. No downloads, no sign up, free forever.",
-    images: ["/og-image.png"],
+    images: ["/og-image.webp"],
   },
   icons: {
     icon: [
@@ -50,15 +51,35 @@ export const metadata: Metadata = {
   },
 };
 
+const fontSans = Inter({
+  subsets: ["latin"],
+  variable: "--font-geist-sans",
+  display: "swap",
+});
+
+const fontMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-geist-mono",
+  display: "swap",
+});
+
+const GA_MEASUREMENT_ID = "G-0BXDGTHN02";
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head />
-      <body className="min-h-screen bg-[radial-gradient(circle_at_top,_#ffe2f2,_#fff5f9_55%,_#ffe4ef_100%)] text-foreground antialiased">
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${fontSans.variable} ${fontMono.variable}`}
+    >
+      <head>
+        <link rel="preload" as="image" href="/demo/vintage/1.webp" />
+      </head>
+      <body className="min-h-screen bg-[radial-gradient(circle_at_top,_#ffe2f2,_#fff5f9_55%,_#ffe4ef_100%)] font-sans text-foreground antialiased">
         <ThemeProvider>
           <div className="flex min-h-screen flex-col">
             <header className="fixed top-0 left-0 right-0 z-50 border-b border-pink-100/80 bg-white/80 text-xs text-foreground backdrop-blur-md">
@@ -107,7 +128,22 @@ export default function RootLayout({
           </div>
           <Toaster richColors position="top-center" />
         </ThemeProvider>
-        <GoogleAnalytics gaId="G-0BXDGTHN02" />
+        <Script
+          id="_next-ga-init"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+          window['dataLayer'] = window['dataLayer'] || [];
+          function gtag(){window['dataLayer'].push(arguments);}
+          gtag('js', new Date());
+          gtag('config', '${GA_MEASUREMENT_ID}');`,
+          }}
+        />
+        <Script
+          id="_next-ga"
+          strategy="afterInteractive"
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+        />
       </body>
     </html>
   );

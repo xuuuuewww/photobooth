@@ -127,7 +127,7 @@ export default function Home() {
                 <div className="relative h-[420px] w-full max-w-md animate-float-soft md:h-[520px]">
                   <div className="absolute left-0 top-2 z-0 flex h-[360px] w-[260px] -rotate-8 items-center justify-center overflow-hidden rounded-[1.9rem] border border-white/80 bg-neutral-100 shadow-[0_22px_60px_rgba(15,23,42,0.28)] md:h-[420px] md:w-[270px]">
                   <Image
-                    src="/hero-photo-booth-3.png"
+                    src="/hero-photo-booth-3.webp"
                     alt="free photo booth app"
                     width={270}
                     height={900}
@@ -137,7 +137,7 @@ export default function Home() {
 
                   <div className="group absolute right-2 top-12 z-10 flex h-[380px] w-[280px] items-center justify-center overflow-hidden rounded-[2rem] border border-neutral-100 bg-neutral-50 shadow-[0_30px_90px_rgba(15,23,42,0.38)] transition-transform duration-300 hover:-translate-y-1.5 hover:scale-[1.03] md:h-[460px] md:w-[290px]">
                   <Image
-                    src="/hero-photo-booth-2.png"
+                    src="/hero-photo-booth-2.webp"
                     alt="free photo booth apps"
                     width={290}
                     height={960}
@@ -169,7 +169,7 @@ export default function Home() {
             <div className="mx-auto mt-12 grid w-full max-w-5xl grid-cols-1 gap-[30px] md:grid-cols-2 md:items-center md:gap-14">
               <div className="order-2 w-full overflow-visible md:order-1">
                 <Image
-                  src="/home-landing/photo-booth-filters.png"
+                  src="/home-landing/photo-booth-filters.webp"
                   alt="Photo booth filters preview"
                   width={1280}
                   height={960}
@@ -203,7 +203,7 @@ export default function Home() {
               </div>
               <div className="w-full overflow-visible">
                 <Image
-                  src="/home-landing/customize-photo-strips.png"
+                  src="/home-landing/customize-photo-strips.webp"
                   alt="Customize photo strips preview"
                   width={1280}
                   height={960}
@@ -216,7 +216,7 @@ export default function Home() {
             <div className="mx-auto mt-12 grid w-full max-w-5xl grid-cols-1 gap-[30px] md:grid-cols-2 md:items-center md:gap-14">
               <div className="order-2 w-full overflow-visible md:order-1">
                 <Image
-                  src="/home-landing/customize-photo-strips-stickers.png"
+                  src="/home-landing/customize-photo-strips-stickers.webp"
                   alt="Photo strip stickers preview"
                   width={1280}
                   height={960}
@@ -261,7 +261,7 @@ export default function Home() {
               <div className="group overflow-hidden rounded-2xl border border-pink-100 bg-white shadow-sm transition-transform duration-300 hover:-translate-y-1">
                 <div className="relative h-[250px] overflow-hidden bg-white/70">
                   <Image
-                    src="/home-landing/use-case-pensonal.png"
+                    src="/home-landing/use-case-pensonal.webp"
                     alt="Personal and social photo strip use case"
                     fill
                     className="object-cover"
@@ -283,7 +283,7 @@ export default function Home() {
               <div className="group overflow-hidden rounded-2xl border border-pink-100 bg-white shadow-sm transition-transform duration-300 hover:-translate-y-1">
                 <div className="relative h-[250px] overflow-hidden bg-white/70">
                   <Image
-                    src="/home-landing/use-case-wedding.png"
+                    src="/home-landing/use-case-wedding.webp"
                     alt="Wedding photo strip use case"
                     fill
                     className="object-cover"
@@ -305,7 +305,7 @@ export default function Home() {
               <div className="group overflow-hidden rounded-2xl border border-pink-100 bg-white shadow-sm transition-transform duration-300 hover:-translate-y-1">
                 <div className="relative h-[250px] overflow-hidden bg-white/70">
                   <Image
-                    src="/home-landing/use-case-party.png"
+                    src="/home-landing/use-case-party.webp"
                     alt="Party and birthday photo strip use case"
                     fill
                     className="object-cover"
@@ -327,7 +327,7 @@ export default function Home() {
               <div className="group overflow-hidden rounded-2xl border border-pink-100 bg-white shadow-sm transition-transform duration-300 hover:-translate-y-1">
                 <div className="relative h-[250px] overflow-hidden bg-white/70">
                   <Image
-                    src="/home-landing/use-case-events.png"
+                    src="/home-landing/use-case-events.webp"
                     alt="Corporate event photo strip use case"
                     fill
                     className="object-cover"
@@ -494,7 +494,7 @@ export default function Home() {
 
               <div className="relative flex justify-center">
                 <Image
-                  src="/home-landing/how-to-use.png"
+                  src="/home-landing/how-to-use.webp"
                   alt="How to create photo strips online"
                   width={1200}
                   height={900}
