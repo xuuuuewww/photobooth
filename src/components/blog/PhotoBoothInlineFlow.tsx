@@ -36,10 +36,30 @@ const STRIP_STICKER_POSITIONS = [
 ];
 
 const DEMO_PHOTOS: Record<string, string[]> = {
-  "vintage-sepia": ["/demo/vintage/1.jpg", "/demo/vintage/2.png", "/demo/vintage/3.png", "/demo/vintage/4.png"],
-  "wedding-classic": ["/demo/wedding/1.png", "/demo/wedding/2.png", "/demo/wedding/3.png", "/demo/wedding/4.jpg"],
-  "romantic-bw": ["/demo/bw/1.png", "/demo/bw/2.png", "/demo/bw/3.png", "/demo/bw/4.jpeg"],
-  "romantic-color": ["/demo/color/1.png", "/demo/color/2.jpg", "/demo/color/3.png", "/demo/color/4.png"],
+  "vintage-sepia": [
+    "/demo/vintage/1.webp",
+    "/demo/vintage/2.webp",
+    "/demo/vintage/3.webp",
+    "/demo/vintage/4.webp",
+  ],
+  "wedding-classic": [
+    "/demo/wedding/1.webp",
+    "/demo/wedding/2.webp",
+    "/demo/wedding/3.webp",
+    "/demo/wedding/4.webp",
+  ],
+  "romantic-bw": [
+    "/demo/bw/1.webp",
+    "/demo/bw/2.webp",
+    "/demo/bw/3.webp",
+    "/demo/bw/4.webp",
+  ],
+  "romantic-color": [
+    "/demo/color/1.webp",
+    "/demo/color/2.webp",
+    "/demo/color/3.webp",
+    "/demo/color/4.webp",
+  ],
 };
 
 type StepKey = "template" | "capture" | "customize";
@@ -547,7 +567,7 @@ export function PhotoBoothInlineFlow() {
                               className="relative h-[52.5px] w-full shrink-0 overflow-hidden rounded-sm"
                             >
                               <Image
-                                src={demoPhotos[i] ?? "/demo/vintage/1.jpg"}
+                                src={demoPhotos[i] ?? "/demo/vintage/1.webp"}
                                 alt={`${template.name} ${i + 1}`}
                                 fill
                                 className="object-cover"
