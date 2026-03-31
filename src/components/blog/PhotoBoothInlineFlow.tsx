@@ -629,10 +629,10 @@ export function PhotoBoothInlineFlow() {
             >
               ← Template
             </button>
-            <div className="flex min-h-0 flex-1 flex-col items-stretch gap-5 md:flex-row md:flex-wrap md:justify-center md:items-stretch">
+            <div className="flex min-h-0 flex-1 flex-col items-stretch gap-5 md:flex-row md:items-start md:justify-center">
               {/* 1. Viewfinder: same height as preview, 4:3 scales with it */}
-              <div className="flex min-h-[240px] min-w-0 shrink-0 items-center justify-center md:min-h-0 md:h-full">
-                <div className="aspect-[4/3] h-full max-w-none overflow-hidden rounded-xl border border-neutral-200 bg-neutral-900 shadow-lg">
+              <div className="flex min-h-[240px] min-w-0 items-center justify-center md:min-h-0 md:flex-1 md:items-start">
+                <div className="aspect-[4/3] w-full max-w-[560px] md:max-h-[360px] lg:max-h-[420px] xl:max-h-[480px] overflow-hidden rounded-xl border border-neutral-200 bg-neutral-900 shadow-lg">
                   <video
                     ref={videoRef}
                     className="h-full w-full object-cover object-center"
